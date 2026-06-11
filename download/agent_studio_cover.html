@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=794px, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700;900&family=Noto+Serif+SC:wght@400;700&family=Carlito:wght@400;700&display=swap" rel="stylesheet">
+<style>
+@page { size: 794px 1123px; margin: 0; }
+:root {
+  --primary: #314a56;
+  --accent: #ca5229;
+  --accent2: #50b336;
+  --bg: #ffffff;
+  --text: #131415;
+  --muted: #747a7d;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  width: 794px; height: 1123px;
+  margin: 0; padding: 0;
+  background: var(--bg);
+  font-family: 'Noto Sans SC', 'Carlito', sans-serif;
+}
+.cover {
+  position: relative;
+  width: 794px; height: 1123px;
+  background: var(--bg);
+}
+.bg-layer {
+  position: absolute; inset: 0;
+  overflow: hidden; z-index: 1;
+}
+.bg-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(49,74,86,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(49,74,86,0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+.bg-circle1 {
+  position: absolute;
+  width: 400px; height: 400px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(202,82,41,0.06) 0%, transparent 70%);
+  top: -80px; right: -80px;
+}
+.bg-circle2 {
+  position: absolute;
+  width: 300px; height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(80,179,54,0.04) 0%, transparent 70%);
+  bottom: 60px; left: -60px;
+}
+.line-layer {
+  position: absolute; inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+.hline-top {
+  position: absolute;
+  left: 79px; right: 79px;
+  top: 281px;
+  height: 2px;
+  background: var(--primary);
+}
+.hline-bottom {
+  position: absolute;
+  left: 79px; right: 79px;
+  top: 842px;
+  height: 2px;
+  background: var(--primary);
+}
+.vline-mid {
+  position: absolute;
+  left: 357px;
+  top: 281px;
+  height: 561px;
+  width: 2px;
+  background: var(--primary);
+}
+.text-layer {
+  position: absolute; inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+.zone-a {
+  position: absolute;
+  left: 95px; top: 185px;
+  width: 600px;
+}
+.kicker {
+  font-size: 15px;
+  font-weight: 400;
+  letter-spacing: 4px;
+  color: var(--muted);
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+.zone-b {
+  position: absolute;
+  left: 95px; top: 315px;
+  width: 250px;
+}
+.hero-title {
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 48px;
+  font-weight: 900;
+  line-height: 1.25;
+  color: var(--text);
+  word-wrap: break-word;
+}
+.hero-sub {
+  font-family: 'Carlito', 'Noto Sans SC', sans-serif;
+  font-size: 22px;
+  font-weight: 400;
+  color: var(--accent);
+  margin-top: 12px;
+  letter-spacing: 1px;
+}
+.zone-c {
+  position: absolute;
+  left: 385px; top: 315px;
+  width: 335px;
+}
+.summary {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 16.5px;
+  font-weight: 400;
+  line-height: 1.75;
+  color: var(--text);
+  opacity: 0.85;
+}
+.accent-word {
+  color: var(--accent);
+  font-weight: 700;
+}
+.green-word {
+  color: var(--accent2);
+  font-weight: 700;
+}
+.modality-tags {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.modality-tag {
+  display: inline-block;
+  padding: 4px 14px;
+  border: 1.5px solid var(--primary);
+  border-radius: 20px;
+  font-size: 13px;
+  color: var(--primary);
+  opacity: 0.7;
+  font-family: 'Noto Sans SC', sans-serif;
+}
+.zone-d {
+  position: absolute;
+  left: 95px; right: 95px;
+  top: 875px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.footer-left {
+  font-size: 15px; color: var(--muted); opacity: 0.55; letter-spacing: 1px;
+}
+.footer-right {
+  font-size: 15px; color: var(--muted); opacity: 0.55; letter-spacing: 1px;
+}
+.accent-dot {
+  display: inline-block;
+  width: 8px; height: 8px;
+  background: var(--accent);
+  border-radius: 50%;
+  margin-right: 10px;
+  vertical-align: middle;
+}
+</style>
+<style>
+@media screen {
+  html { height: auto; display: flex; justify-content: center; }
+  body { transform-origin: top center; scale: min(1, calc(100vh / 1123)); margin: 0 auto; }
+}
+</style>
+</head>
+<body>
+<div class="cover">
+  <div class="bg-layer">
+    <div class="bg-grid"></div>
+    <div class="bg-circle1"></div>
+    <div class="bg-circle2"></div>
+  </div>
+  <div class="line-layer">
+    <div class="hline-top"></div>
+    <div class="hline-bottom"></div>
+    <div class="vline-mid"></div>
+  </div>
+  <div class="text-layer">
+    <div class="zone-a">
+      <div class="kicker">ARCHITECTURE DESIGN DOCUMENT</div>
+    </div>
+    <div class="zone-b">
+      <div class="hero-title">Omni<br>Forge</div>
+      <div class="hero-sub">AI Agent Studio</div>
+    </div>
+    <div class="zone-c">
+      <div class="summary">
+        基于 <span class="accent-word">Open Design</span> 架构模式的多模态 AI 创作平台设计方案。<br><br>
+        融合 <span class="green-word">文字</span>、<span class="accent-word">图像</span>、<span class="green-word">视频</span>、<span class="accent-word">音乐</span> 四大创作模态，通过 Agent 无关设计、18 层提示词组合、声明式创作流水线和 7 专家多模态质量审核，构建下一代 AI 原生创作引擎。
+      </div>
+      <div class="modality-tags">
+        <span class="modality-tag">Text</span>
+        <span class="modality-tag">Image</span>
+        <span class="modality-tag">Video</span>
+        <span class="modality-tag">Music</span>
+      </div>
+    </div>
+    <div class="zone-d">
+      <div class="footer-left"><span class="accent-dot"></span>2026.06</div>
+      <div class="footer-right">Architecture Design v1.0</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
