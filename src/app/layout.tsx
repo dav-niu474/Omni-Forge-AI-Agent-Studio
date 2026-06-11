@@ -15,18 +15,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AI Agent Studio",
+  title: "Agent Studio",
   description:
-    "Multimodal AI creation studio powered by Open Design architecture patterns. Create text, images, video, audio, and 3D models with AI agent workflows.",
-  keywords: [
-    "AI",
-    "Agent Studio",
-    "Multimodal",
-    "Open Design",
-    "Next.js",
-    "TypeScript",
-  ],
-  authors: [{ name: "AI Agent Studio Team" }],
+    "Multimodal AI creation studio. Create text, images, video, audio, and 3D models.",
   icons: {
     icon: "https://z-cdn.chatglm.cn/z-ai/static/logo.svg",
   },

@@ -1,6 +1,7 @@
 // ============================================================================
 // AI Agent Studio - ChatPanel Component
-// Chat interface with prompt input, message display, and modality controls
+// Claude-inspired: AI messages flat (no bubble), user messages subtle pill
+// Generous whitespace, typography-driven, minimal chrome
 // ============================================================================
 
 "use client";
@@ -10,15 +11,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Send,
   Square,
-  Paperclip,
-  Sparkles,
-  RotateCcw,
+  ArrowUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { useStudioStore } from "@/lib/store";
 import { useChatStream } from "@/hooks/useChatStream";
@@ -26,86 +23,33 @@ import { MODALITY_CONFIG } from "@/lib/types";
 import type { Modality, ChatMessage } from "@/lib/types";
 
 // ---------------------------------------------------------------------------
-// Message Bubble
+// Message — Claude style: AI has no background, user has subtle fill
 // ---------------------------------------------------------------------------
 function MessageBubble({ message }: { message: ChatMessage }) {
   const isUser = message.role === "user";
   const isSystem = message.role === "system";
-  const modalityConfig = MODALITY_CONFIG[message.modality];
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8 }}
+      initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2 }}
-      className={cn(
-        "flex gap-2.5",
-        isUser ? "flex-row-reverse" : "flex-row"
-      )}
+      transition={{ duration: 0.15 }}
+      className={cn("flex gap-3 py-3", isUser ? "justify-end" : "justify-start")}
     >
-      {/* Avatar */}
       <div
         className={cn(
-          "size-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0",
+          "max-w-[85%] text-[14px] leading-relaxed",
           isUser
-            ? "bg-primary text-primary-foreground"
+            ? "bg-secondary text-secondary-foreground rounded-2xl px-4 py-2.5"
             : isSystem
-            ? "bg-muted text-muted-foreground"
-            : "bg-violet-600 text-white"
+            ? "text-muted-foreground text-xs italic"
+            : "text-foreground"
         )}
       >
-        {isUser ? "U" : isSystem ? "S" : "AI"}
-      </div>
-
-      {/* Content */}
-      <div
-        className={cn(
-          "flex flex-col gap-1 max-w-[80%]",
-          isUser ? "items-end" : "items-start"
+        {message.isStreaming && (
+          <span className="inline-block w-1.5 h-4 bg-foreground/30 animate-pulse ml-0.5 align-middle rounded-sm" />
         )}
-      >
-        <div
-          className={cn(
-            "rounded-xl px-3 py-2 text-sm leading-relaxed",
-            isUser
-              ? "bg-primary text-primary-foreground"
-              : "bg-muted text-foreground"
-          )}
-        >
-          {message.isStreaming && (
-            <span className="inline-block w-1.5 h-4 bg-current animate-pulse ml-0.5 align-middle" />
-          )}
-          {message.content || (message.isStreaming ? "" : "...")}
-        </div>
-
-        {/* Artifacts summary */}
-        {message.artifacts.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-1">
-            {message.artifacts.map((artifact) => (
-              <Badge
-                key={artifact.id}
-                variant="outline"
-                className="text-[10px] px-1.5 py-0 h-5"
-              >
-                {artifact.type}: {artifact.title}
-              </Badge>
-            ))}
-          </div>
-        )}
-
-        {/* Metadata */}
-        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-          <span className={cn(modalityConfig.colorClass)}>
-            {modalityConfig.label}
-          </span>
-          <span>·</span>
-          <span>
-            {new Date(message.timestamp).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </span>
-        </div>
+        {message.content || (message.isStreaming ? "" : "...")}
       </div>
     </motion.div>
   );
@@ -122,7 +66,6 @@ export function ChatPanel() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Auto-scroll to bottom on new messages
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -134,7 +77,6 @@ export function ChatPanel() {
     if (!trimmed || isStreaming) return;
     send(trimmed, activeModality);
     setInputValue("");
-    // Reset textarea height
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
     }
@@ -153,7 +95,6 @@ export function ChatPanel() {
   const handleTextareaChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       setInputValue(e.target.value);
-      // Auto-resize
       e.target.style.height = "auto";
       e.target.style.height = Math.min(e.target.scrollHeight, 200) + "px";
     },
@@ -161,48 +102,21 @@ export function ChatPanel() {
   );
 
   const modalityConfig = MODALITY_CONFIG[activeModality];
+  const hasValue = inputValue.trim().length > 0;
 
   return (
-    <div className="flex flex-col h-full border rounded-xl bg-card/50 backdrop-blur-sm overflow-hidden">
-      {/* Chat Header */}
-      <div className="flex items-center justify-between px-4 py-2.5 border-b">
-        <div className="flex items-center gap-2">
-          <Sparkles className={cn("size-4", modalityConfig.colorClass)} />
-          <span className="text-sm font-medium">Chat</span>
-          <Badge variant="outline" className="text-[10px] h-5 px-1.5">
-            {modalityConfig.label}
-          </Badge>
-          {isStreaming && (
-            <Badge variant="secondary" className="text-[10px] h-5 px-1.5 animate-pulse">
-              Streaming
-            </Badge>
-          )}
-        </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="size-7"
-          onClick={clearMessages}
-          title="Clear chat"
-        >
-          <RotateCcw className="size-3.5" />
-        </Button>
-      </div>
-
+    <div className="flex flex-col h-full overflow-hidden">
       {/* Messages */}
       <ScrollArea className="flex-1">
-        <div ref={scrollRef} className="flex flex-col gap-3 p-4">
+        <div ref={scrollRef} className="flex flex-col px-1">
           {messages.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground gap-3">
-              <div className="size-12 rounded-2xl bg-muted flex items-center justify-center">
-                <Sparkles className="size-6" />
-              </div>
-              <div className="text-center">
-                <p className="text-sm font-medium">AI Agent Studio</p>
-                <p className="text-xs mt-1">
-                  Select a modality and start creating
-                </p>
-              </div>
+            <div className="flex flex-col items-center justify-center py-20 text-muted-foreground gap-3">
+              <p className="text-sm font-medium text-foreground/60">
+                What would you like to create?
+              </p>
+              <p className="text-xs text-muted-foreground/70">
+                {modalityConfig.label} mode active
+              </p>
             </div>
           )}
           <AnimatePresence mode="popLayout">
@@ -213,50 +127,50 @@ export function ChatPanel() {
         </div>
       </ScrollArea>
 
-      <Separator />
-
-      {/* Input Area */}
-      <div className="p-3">
-        <div className="flex items-end gap-2">
-          <div className="flex-1 relative">
-            <Textarea
-              ref={textareaRef}
-              value={inputValue}
-              onChange={handleTextareaChange}
-              onKeyDown={handleKeyDown}
-              placeholder={`Create ${modalityConfig.label.toLowerCase()} content...`}
-              className="min-h-[40px] max-h-[200px] resize-none pr-10 text-sm"
-              rows={1}
-              disabled={isStreaming}
-            />
+      {/* Input Area — Claude-style: single rounded container */}
+      <div className="pt-3">
+        <div
+          className={cn(
+            "flex items-end gap-2 rounded-2xl border bg-background px-4 py-3",
+            "border-border/80",
+            "focus-within:border-foreground/20 focus-within:ring-1 focus-within:ring-foreground/5",
+            "transition-all duration-150"
+          )}
+        >
+          <Textarea
+            ref={textareaRef}
+            value={inputValue}
+            onChange={handleTextareaChange}
+            onKeyDown={handleKeyDown}
+            placeholder="Ask anything..."
+            className="min-h-[24px] max-h-[200px] resize-none border-0 bg-transparent p-0 text-[14px] shadow-none focus-visible:ring-0 focus-visible:outline-none placeholder:text-muted-foreground/50"
+            rows={1}
+            disabled={isStreaming}
+          />
+          {isStreaming ? (
             <Button
               variant="ghost"
               size="icon"
-              className="absolute right-1 bottom-1 size-7"
-              title="Attach file"
-            >
-              <Paperclip className="size-3.5" />
-            </Button>
-          </div>
-          {isStreaming ? (
-            <Button
-              variant="destructive"
-              size="icon"
               onClick={cancel}
-              className="size-9 shrink-0"
-              title="Stop streaming"
+              className="size-8 shrink-0 rounded-lg text-muted-foreground hover:text-foreground"
+              title="Stop"
             >
-              <Square className="size-3.5" />
+              <Square className="size-3.5 fill-current" />
             </Button>
           ) : (
             <Button
               size="icon"
               onClick={handleSend}
-              disabled={!inputValue.trim()}
-              className="size-9 shrink-0"
-              title="Send message"
+              disabled={!hasValue}
+              className={cn(
+                "size-8 shrink-0 rounded-lg transition-all",
+                hasValue
+                  ? "bg-foreground text-background hover:bg-foreground/90"
+                  : "bg-muted text-muted-foreground"
+              )}
+              title="Send"
             >
-              <Send className="size-3.5" />
+              <ArrowUp className="size-4" />
             </Button>
           )}
         </div>
