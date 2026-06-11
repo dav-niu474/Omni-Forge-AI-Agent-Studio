@@ -36,7 +36,6 @@ yarn-error.log*
 # vercel
 .vercel
 
-
 # typescript
 *.tsbuildinfo
 next-env.d.ts
@@ -48,7 +47,28 @@ dev.log
 dev.out.log
 test
 prompt
-
 server.log
+
 # Skills directory
 /skills/
+
+# Open Design monorepo (too large, reference only)
+/open-design/
+
+# Database files
+/db/
+
+# Download/generated files
+/download/
+
+# Agent context
+/agent-ctx/
+
+# Mini services (separate deployment)
+/mini-services/
+
+# Examples
+/examples/
+
+# Worklog
+worklog.md
