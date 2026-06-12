@@ -1,6 +1,6 @@
 // ============================================================================
 // AI Agent Studio - ArtifactPreview Component
-// Claude-inspired: minimal chrome, clean toolbar, no visual noise
+// Open Design pattern: workspace with tabs, accent-tinted artifact cards
 // ============================================================================
 
 "use client";
@@ -43,10 +43,10 @@ function HtmlArtifactRenderer({ artifact }: { artifact: Artifact }) {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between px-2 py-1.5">
+      <div className="flex items-center justify-between px-3 h-9 border-b border-border shrink-0">
         <div className="flex items-center gap-2">
-          <Code className="size-3.5 text-muted-foreground/50" />
-          <span className="text-xs text-muted-foreground">{artifact.title}</span>
+          <Code className="size-3.5 text-muted-foreground" />
+          <span className="text-[12px] text-foreground">{artifact.title}</span>
         </div>
         <div className="flex items-center gap-0.5">
           <Button
@@ -72,8 +72,8 @@ function HtmlArtifactRenderer({ artifact }: { artifact: Artifact }) {
           srcDoc={artifact.html}
           sandbox="allow-scripts allow-same-origin"
           className={cn(
-            "w-full h-full border-0 bg-white rounded-md",
-            isExpanded ? "absolute inset-0 z-50 rounded-none" : ""
+            "w-full h-full border-0 bg-white",
+            isExpanded ? "absolute inset-0 z-50" : ""
           )}
           title={artifact.title}
         />
@@ -83,7 +83,7 @@ function HtmlArtifactRenderer({ artifact }: { artifact: Artifact }) {
 }
 
 // ---------------------------------------------------------------------------
-// Image Artifact
+// Image Artifact — OD accent-tinted card
 // ---------------------------------------------------------------------------
 function ImageArtifactRenderer({ artifact }: { artifact: Artifact }) {
   const [loaded, setLoaded] = useState(false);
@@ -93,32 +93,28 @@ function ImageArtifactRenderer({ artifact }: { artifact: Artifact }) {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between px-2 py-1.5">
+      <div className="flex items-center justify-between px-3 h-9 border-b border-border shrink-0">
         <div className="flex items-center gap-2">
-          <ImageIcon className="size-3.5 text-muted-foreground/50" />
-          <span className="text-xs text-muted-foreground">{artifact.title}</span>
+          <ImageIcon className="size-3.5 text-muted-foreground" />
+          <span className="text-[12px]">{artifact.title}</span>
         </div>
         {artifact.url && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-6 text-muted-foreground/50 hover:text-foreground"
-            onClick={() => window.open(artifact.url, "_blank")}
-          >
+          <Button variant="ghost" size="icon" className="size-6 text-muted-foreground/50 hover:text-foreground"
+            onClick={() => window.open(artifact.url, "_blank")}>
             <ExternalLink className="size-3" />
           </Button>
         )}
       </div>
-      <div className="flex-1 flex items-center justify-center p-4 bg-muted/30 rounded-lg">
+      <div className="flex-1 flex items-center justify-center p-4 bg-muted/30">
         {!loaded && imgSrc && (
-          <div className="size-6 border-2 border-muted-foreground/20 border-t-foreground/40 rounded-full animate-spin" />
+          <div className="size-5 border-2 border-accent/30 border-t-accent rounded-full animate-spin" />
         )}
         {imgSrc && (
           <img
             src={imgSrc}
             alt={artifact.alt || artifact.title}
             className={cn(
-              "max-w-full max-h-full object-contain rounded-md transition-opacity duration-300",
+              "max-w-full max-h-full object-contain rounded-lg shadow-sm transition-opacity duration-200",
               loaded ? "opacity-100" : "opacity-0"
             )}
             onLoad={() => setLoaded(true)}
@@ -135,17 +131,17 @@ function ImageArtifactRenderer({ artifact }: { artifact: Artifact }) {
 function VideoArtifactRenderer({ artifact }: { artifact: Artifact }) {
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center gap-2 px-2 py-1.5">
-        <Video className="size-3.5 text-muted-foreground/50" />
-        <span className="text-xs text-muted-foreground">{artifact.title}</span>
+      <div className="flex items-center gap-2 px-3 h-9 border-b border-border shrink-0">
+        <Video className="size-3.5 text-muted-foreground" />
+        <span className="text-[12px]">{artifact.title}</span>
       </div>
-      <div className="flex-1 flex items-center justify-center bg-black/5 dark:bg-black/40 rounded-lg overflow-hidden">
+      <div className="flex-1 flex items-center justify-center bg-black/5 dark:bg-black/30">
         {artifact.url ? (
-          <video src={artifact.url} controls className="max-w-full max-h-full rounded-md" poster={artifact.thumbnailUrl} />
+          <video src={artifact.url} controls className="max-w-full max-h-full" poster={artifact.thumbnailUrl} />
         ) : (
-          <div className="flex flex-col items-center gap-2 text-muted-foreground/40 py-12">
+          <div className="flex flex-col items-center gap-2 text-muted-foreground/30 py-12">
             <Video className="size-10" />
-            <span className="text-xs">Video preview unavailable</span>
+            <span className="text-[12px]">Video preview unavailable</span>
           </div>
         )}
       </div>
@@ -159,24 +155,24 @@ function VideoArtifactRenderer({ artifact }: { artifact: Artifact }) {
 function AudioArtifactRenderer({ artifact }: { artifact: Artifact }) {
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center gap-2 px-2 py-1.5">
-        <Music className="size-3.5 text-muted-foreground/50" />
-        <span className="text-xs text-muted-foreground">{artifact.title}</span>
+      <div className="flex items-center gap-2 px-3 h-9 border-b border-border shrink-0">
+        <Music className="size-3.5 text-muted-foreground" />
+        <span className="text-[12px]">{artifact.title}</span>
       </div>
       <div className="flex-1 flex flex-col items-center justify-center p-6 gap-4">
-        <div className="flex items-center gap-[3px] h-14">
+        <div className="flex items-center gap-[2px] h-12">
           {(artifact.waveform || Array.from({ length: 48 }).map(() => 0.3 + Math.random() * 0.5)).map((amp, i) => (
             <div
               key={i}
-              className="w-[3px] bg-foreground/10 rounded-full"
-              style={{ height: `${Math.max(4, amp * 56)}px` }}
+              className="w-[2.5px] bg-accent/25 rounded-full"
+              style={{ height: `${Math.max(3, amp * 48)}px` }}
             />
           ))}
         </div>
         {artifact.url ? (
           <audio src={artifact.url} controls className="w-full max-w-sm" />
         ) : (
-          <span className="text-xs text-muted-foreground/50">Audio preview unavailable</span>
+          <span className="text-[12px] text-muted-foreground/40">Audio preview unavailable</span>
         )}
       </div>
     </div>
@@ -189,18 +185,18 @@ function AudioArtifactRenderer({ artifact }: { artifact: Artifact }) {
 function Model3DArtifactRenderer({ artifact }: { artifact: Artifact }) {
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center gap-2 px-2 py-1.5">
-        <Box className="size-3.5 text-muted-foreground/50" />
-        <span className="text-xs text-muted-foreground">{artifact.title}</span>
+      <div className="flex items-center gap-2 px-3 h-9 border-b border-border shrink-0">
+        <Box className="size-3.5 text-muted-foreground" />
+        <span className="text-[12px]">{artifact.title}</span>
         {artifact.format && (
-          <span className="text-[10px] text-muted-foreground/40">{artifact.format.toUpperCase()}</span>
+          <span className="text-[10px] text-muted-foreground/50">{artifact.format.toUpperCase()}</span>
         )}
       </div>
-      <div className="flex-1 flex flex-col items-center justify-center gap-3 text-muted-foreground/30">
+      <div className="flex-1 flex flex-col items-center justify-center gap-3 text-muted-foreground/25">
         <Box className="size-12" />
-        <p className="text-xs text-muted-foreground/50">3D viewer coming soon</p>
+        <p className="text-[12px] text-muted-foreground/40">3D viewer coming soon</p>
         {artifact.url && (
-          <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => window.open(artifact.url, "_blank")}>
+          <Button variant="outline" size="sm" className="gap-1.5 text-[11px] h-7" onClick={() => window.open(artifact.url, "_blank")}>
             <Download className="size-3" />
             Download
           </Button>
@@ -216,25 +212,21 @@ function Model3DArtifactRenderer({ artifact }: { artifact: Artifact }) {
 function CodeArtifactRenderer({ artifact }: { artifact: Artifact }) {
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between px-2 py-1.5">
+      <div className="flex items-center justify-between px-3 h-9 border-b border-border shrink-0">
         <div className="flex items-center gap-2">
-          <FileCode className="size-3.5 text-muted-foreground/50" />
-          <span className="text-xs text-muted-foreground">{artifact.title}</span>
+          <FileCode className="size-3.5 text-muted-foreground" />
+          <span className="text-[12px]">{artifact.title}</span>
           {artifact.language && (
-            <span className="text-[10px] text-muted-foreground/40">{artifact.language}</span>
+            <span className="text-[10px] text-muted-foreground/50">{artifact.language}</span>
           )}
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="size-6 text-muted-foreground/50 hover:text-foreground"
-          onClick={() => navigator.clipboard.writeText(artifact.code || "")}
-        >
+        <Button variant="ghost" size="icon" className="size-6 text-muted-foreground/50 hover:text-foreground"
+          onClick={() => navigator.clipboard.writeText(artifact.code || "")}>
           <Copy className="size-3" />
         </Button>
       </div>
       <ScrollArea className="flex-1">
-        <pre className="p-4 text-xs font-mono leading-relaxed text-muted-foreground/70 overflow-x-auto">
+        <pre className="p-4 text-[12px] font-mono leading-relaxed text-muted-foreground/70 overflow-x-auto">
           <code>{artifact.code}</code>
         </pre>
       </ScrollArea>
@@ -243,7 +235,7 @@ function CodeArtifactRenderer({ artifact }: { artifact: Artifact }) {
 }
 
 // ---------------------------------------------------------------------------
-// Main ArtifactPreview
+// Main ArtifactPreview — OD workspace with tabs
 // ---------------------------------------------------------------------------
 export function ArtifactPreview() {
   const { activeArtifact, artifactHistory } = useStudioStore();
@@ -266,9 +258,9 @@ export function ArtifactPreview() {
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      {/* Artifact Tabs — minimal pills */}
+      {/* Workspace tabs — OD-style 38px tab bar */}
       {artifactHistory.length > 1 && (
-        <div className="flex items-center gap-1 pb-2 overflow-x-auto">
+        <div className="flex items-center h-[38px] border-b border-border px-2 gap-0.5 overflow-x-auto shrink-0">
           {artifactHistory.map((artifact) => {
             const Icon = ARTIFACT_ICONS[artifact.type];
             const isActive = displayArtifact?.id === artifact.id;
@@ -277,10 +269,10 @@ export function ArtifactPreview() {
                 key={artifact.id}
                 onClick={() => setSelectedArtifactId(artifact.id)}
                 className={cn(
-                  "flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs transition-colors shrink-0",
+                  "flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[12px] transition-colors shrink-0 h-7",
                   isActive
-                    ? "bg-accent text-accent-foreground"
-                    : "text-muted-foreground/60 hover:text-foreground hover:bg-accent/50"
+                    ? "bg-accent-tint text-accent font-medium"
+                    : "text-muted-foreground hover:text-foreground hover:bg-secondary"
                 )}
               >
                 <Icon className="size-3" />
@@ -291,8 +283,8 @@ export function ArtifactPreview() {
         </div>
       )}
 
-      {/* Content */}
-      <div className="flex-1 overflow-hidden rounded-xl border border-border/60">
+      {/* Artifact content */}
+      <div className="flex-1 overflow-hidden">
         <AnimatePresence mode="wait">
           {displayArtifact ? (
             <motion.div
@@ -316,11 +308,15 @@ export function ArtifactPreview() {
 
 function EmptyState() {
   return (
-    <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground/30">
-      <Code className="size-10" />
+    <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground/25">
+      <div className="size-12 rounded-xl bg-accent-tint flex items-center justify-center">
+        <Code className="size-5 text-accent/40" />
+      </div>
       <div className="text-center">
-        <p className="text-sm text-muted-foreground/50">Preview</p>
-        <p className="text-xs text-muted-foreground/30 mt-1">Generated artifacts appear here</p>
+        <p className="text-[13px] text-muted-foreground/50">Workspace</p>
+        <p className="text-[12px] text-muted-foreground/30 mt-0.5">
+          Generated artifacts appear here
+        </p>
       </div>
     </div>
   );

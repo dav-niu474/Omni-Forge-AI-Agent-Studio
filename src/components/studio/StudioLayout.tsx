@@ -1,30 +1,27 @@
 // ============================================================================
 // AI Agent Studio - StudioLayout Component
-// Claude-inspired: minimal chrome, generous whitespace, no heavy borders
+// Open Design pattern: LEFT chat panel + RIGHT workspace
+// Compact chrome, warm neutral palette, terracotta accent
 // ============================================================================
 
 "use client";
 
-import { useState, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   PanelLeftClose,
   PanelLeftOpen,
   Moon,
   Sun,
+  Settings,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { useStudioStore } from "@/lib/store";
 import { ModalitySelector } from "./ModalitySelector";
 import { ChatPanel } from "./ChatPanel";
 import { ArtifactPreview } from "./ArtifactPreview";
-import { PluginContext } from "./PluginContext";
 import { CritiqueTheater } from "./CritiqueTheater";
-import { SSEEventLog } from "./SSEEventLog";
-import { BrandSystemPanel } from "./BrandSystemPanel";
 import { StatusBar } from "./StatusBar";
 
 export function StudioLayout() {
@@ -34,25 +31,28 @@ export function StudioLayout() {
   return (
     <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden">
       {/* ================================================================== */}
-      {/* Header — Ultra minimal, just sidebar toggle + logo + theme */}
+      {/* Chrome Header — 36px, matches OD's thin chrome */}
       {/* ================================================================== */}
-      <header className="flex items-center justify-between h-11 px-4 shrink-0">
+      <header className="flex items-center justify-between h-9 px-3 border-b border-border shrink-0">
         <div className="flex items-center gap-2">
+          {/* Sidebar toggle */}
           <Button
             variant="ghost"
             size="icon"
-            className="size-8 text-muted-foreground hover:text-foreground"
+            className="size-7 text-muted-foreground hover:text-foreground"
             onClick={() => setSidebarOpen(!sidebarOpen)}
           >
             {sidebarOpen ? (
-              <PanelLeftClose className="size-[18px]" />
+              <PanelLeftClose className="size-3.5" />
             ) : (
-              <PanelLeftOpen className="size-[18px]" />
+              <PanelLeftOpen className="size-3.5" />
             )}
           </Button>
 
-          <div className="flex items-center gap-2 ml-1">
-            <span className="text-[15px] font-semibold tracking-tight">
+          {/* Logo — terracotta dot */}
+          <div className="flex items-center gap-2">
+            <div className="size-2.5 rounded-full bg-accent" />
+            <span className="text-[13px] font-semibold tracking-tight">
               Agent Studio
             </span>
           </div>
@@ -62,66 +62,68 @@ export function StudioLayout() {
           <Button
             variant="ghost"
             size="icon"
-            className="size-8 text-muted-foreground hover:text-foreground"
+            className="size-7 text-muted-foreground hover:text-foreground"
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           >
             {theme === "dark" ? (
-              <Sun className="size-[16px]" />
+              <Sun className="size-3.5" />
             ) : (
-              <Moon className="size-[16px]" />
+              <Moon className="size-3.5" />
             )}
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-7 text-muted-foreground hover:text-foreground"
+          >
+            <Settings className="size-3.5" />
           </Button>
         </div>
       </header>
 
       {/* ================================================================== */}
-      {/* Main Content */}
+      {/* Main Content — LEFT chat + RIGHT workspace (OD pattern) */}
       {/* ================================================================== */}
       <div className="flex flex-1 overflow-hidden">
         {/* ================================================================ */}
-        {/* Left Sidebar — Clean, no heavy borders */}
+        {/* Left: Chat Panel — fixed width, OD-style 460px */}
         {/* ================================================================ */}
         <AnimatePresence mode="wait">
           {sidebarOpen && (
-            <motion.aside
+            <motion.div
               initial={{ width: 0, opacity: 0 }}
-              animate={{ width: 260, opacity: 1 }}
+              animate={{ width: 420, opacity: 1 }}
               exit={{ width: 0, opacity: 0 }}
-              transition={{ duration: 0.15, ease: "easeInOut" }}
-              className="flex flex-col border-r border-border/60 overflow-hidden shrink-0"
+              transition={{ duration: 0.15, ease: [0.23, 1, 0.32, 1] }}
+              className="flex flex-col border-r border-border overflow-hidden shrink-0"
             >
-              <ScrollArea className="flex-1">
-                <div className="flex flex-col gap-5 p-4">
-                  <ModalitySelector />
-                  <PluginContext />
-                  <BrandSystemPanel />
-                  <SSEEventLog />
-                </div>
-              </ScrollArea>
-            </motion.aside>
+              <ChatPanel />
+            </motion.div>
           )}
         </AnimatePresence>
 
+        {/* Resize handle */}
+        {sidebarOpen && (
+          <div className="w-1 cursor-col-resize hover:bg-accent/20 transition-colors shrink-0" />
+        )}
+
         {/* ================================================================ */}
-        {/* Main Content Area */}
+        {/* Right: Workspace — Modality rail + Artifact + Critique */}
         {/* ================================================================ */}
         <main className="flex-1 flex flex-col overflow-hidden">
-          <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-            {/* Artifact Preview */}
-            <div className="flex-1 p-4 min-h-0">
+          {/* Workspace tabs + content */}
+          <div className="flex flex-1 overflow-hidden">
+            {/* Modality rail — icon-only vertical nav, OD-style */}
+            <ModalitySelector />
+
+            {/* Artifact preview */}
+            <div className="flex-1 flex flex-col overflow-hidden">
               <ArtifactPreview />
             </div>
-
-            {/* Chat Panel */}
-            <div className="w-full lg:w-[400px] p-4 pl-0 lg:pl-0 shrink-0">
-              <ChatPanel />
-            </div>
           </div>
 
-          {/* Critique Theater */}
-          <div className="px-4 pb-4">
-            <CritiqueTheater />
-          </div>
+          {/* Critique Theater — bottom strip */}
+          <CritiqueTheater />
         </main>
       </div>
 

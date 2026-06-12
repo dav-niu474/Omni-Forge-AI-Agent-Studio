@@ -6,8 +6,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-sans-stack);
+  --font-mono: var(--font-mono-stack);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -44,95 +44,107 @@
 }
 
 /* ============================================================================
-   AI Agent Studio — Claude-inspired Design System
-   Warm neutral palette, generous whitespace, minimal chrome
+   Open Design Token System — Warm neutral + Terracotta accent
    ============================================================================ */
 
 :root {
   --radius: 0.5rem;
-  /* Warm white backgrounds */
-  --background: oklch(0.995 0.002 90);
-  --foreground: oklch(0.175 0.015 260);
-  --card: oklch(0.995 0.002 90);
-  --card-foreground: oklch(0.175 0.015 260);
-  --popover: oklch(0.998 0.001 90);
-  --popover-foreground: oklch(0.175 0.015 260);
-  /* Primary: deep warm charcoal — never bright */
-  --primary: oklch(0.22 0.015 260);
-  --primary-foreground: oklch(0.99 0.002 90);
-  /* Secondary: very light warm gray */
-  --secondary: oklch(0.96 0.005 90);
-  --secondary-foreground: oklch(0.28 0.015 260);
-  /* Muted: soft neutral for backgrounds */
-  --muted: oklch(0.955 0.005 90);
-  --muted-foreground: oklch(0.52 0.012 260);
-  /* Accent: subtle warm highlight */
-  --accent: oklch(0.95 0.008 90);
-  --accent-foreground: oklch(0.28 0.015 260);
-  /* Destructive: muted red */
-  --destructive: oklch(0.55 0.18 25);
-  /* Borders: barely visible */
-  --border: oklch(0.915 0.005 90);
-  --input: oklch(0.915 0.005 90);
-  --ring: oklch(0.65 0.015 260);
-  /* Chart colors — muted, elegant */
-  --chart-1: oklch(0.55 0.12 260);
-  --chart-2: oklch(0.60 0.10 170);
-  --chart-3: oklch(0.55 0.08 45);
-  --chart-4: oklch(0.60 0.12 330);
-  --chart-5: oklch(0.55 0.10 90);
+  /* Warm off-white — never pure white */
+  --background: #faf9f7;
+  --foreground: #1a1916;
+  --card: #fdfcfa;
+  --card-foreground: #1a1916;
+  --popover: #fffefc;
+  --popover-foreground: #1a1916;
+  /* Primary: warm charcoal */
+  --primary: #1a1916;
+  --primary-foreground: #fdfcfa;
+  /* Secondary: subtle warm fill */
+  --secondary: #f4f5f7;
+  --secondary-foreground: #0d0c0a;
+  /* Muted: pressed/inactive backgrounds */
+  --muted: #eef1f5;
+  --muted-foreground: #74716b;
+  /* Accent: TERRACOTTA — the brand color */
+  --accent: #c96442;
+  --accent-foreground: #fffefc;
+  /* Accent tints for subtle backgrounds */
+  --accent-soft: #f5d8cb;
+  --accent-tint: #fbeee5;
+  /* Destructive */
+  --destructive: #c53030;
+  /* Borders: warm and subtle */
+  --border: #e1e5eb;
+  --input: #e1e5eb;
+  --ring: #c96442;
+  /* Charts */
+  --chart-1: #c96442;
+  --chart-2: #2563eb;
+  --chart-3: #17a34a;
+  --chart-4: #7c3aed;
+  --chart-5: #b45a3b;
   /* Sidebar */
-  --sidebar: oklch(0.975 0.003 90);
-  --sidebar-foreground: oklch(0.175 0.015 260);
-  --sidebar-primary: oklch(0.22 0.015 260);
-  --sidebar-primary-foreground: oklch(0.99 0.002 90);
-  --sidebar-accent: oklch(0.94 0.006 90);
-  --sidebar-accent-foreground: oklch(0.28 0.015 260);
-  --sidebar-border: oklch(0.915 0.005 90);
-  --sidebar-ring: oklch(0.65 0.015 260);
+  --sidebar: #fdfcfa;
+  --sidebar-foreground: #1a1916;
+  --sidebar-primary: #c96442;
+  --sidebar-primary-foreground: #fffefc;
+  --sidebar-accent: #f4f5f7;
+  --sidebar-accent-foreground: #1a1916;
+  --sidebar-border: #e1e5eb;
+  --sidebar-ring: #c96442;
 }
 
 .dark {
-  /* Deep warm dark — NOT pure black, warm undertone */
-  --background: oklch(0.135 0.012 260);
-  --foreground: oklch(0.935 0.008 90);
-  --card: oklch(0.16 0.012 260);
-  --card-foreground: oklch(0.935 0.008 90);
-  --popover: oklch(0.16 0.012 260);
-  --popover-foreground: oklch(0.935 0.008 90);
+  /* Warm dark — NOT pure black */
+  --background: #1a1917;
+  --foreground: #e8e4dc;
+  --card: #1f1e1b;
+  --card-foreground: #e8e4dc;
+  --popover: #1f1e1b;
+  --popover-foreground: #e8e4dc;
   /* Primary: warm off-white */
-  --primary: oklch(0.92 0.008 90);
-  --primary-foreground: oklch(0.16 0.012 260);
+  --primary: #e8e4dc;
+  --primary-foreground: #1a1917;
   /* Secondary */
-  --secondary: oklch(0.22 0.012 260);
-  --secondary-foreground: oklch(0.9 0.008 90);
+  --secondary: #2a2825;
+  --secondary-foreground: #e8e4dc;
   /* Muted */
-  --muted: oklch(0.22 0.012 260);
-  --muted-foreground: oklch(0.60 0.015 260);
-  /* Accent */
-  --accent: oklch(0.22 0.015 260);
-  --accent-foreground: oklch(0.9 0.008 90);
+  --muted: #2a2825;
+  --muted-foreground: #989590;
+  /* Accent: lighter terracotta for dark mode */
+  --accent: #d97a56;
+  --accent-foreground: #1a1917;
+  --accent-soft: #3d2a1f;
+  --accent-tint: #2d1f18;
   /* Destructive */
-  --destructive: oklch(0.65 0.16 22);
-  /* Borders — ultra subtle */
-  --border: oklch(0.25 0.012 260);
-  --input: oklch(0.25 0.012 260);
-  --ring: oklch(0.50 0.015 260);
-  /* Chart */
-  --chart-1: oklch(0.60 0.10 260);
-  --chart-2: oklch(0.60 0.10 170);
-  --chart-3: oklch(0.60 0.08 45);
-  --chart-4: oklch(0.60 0.10 330);
-  --chart-5: oklch(0.60 0.08 90);
+  --destructive: #e53e3e;
+  /* Borders: warm dark */
+  --border: #2e2c28;
+  --input: #2e2c28;
+  --ring: #d97a56;
+  /* Charts */
+  --chart-1: #d97a56;
+  --chart-2: #5b8def;
+  --chart-3: #38a169;
+  --chart-4: #9f7aea;
+  --chart-5: #c96442;
   /* Sidebar */
-  --sidebar: oklch(0.155 0.012 260);
-  --sidebar-foreground: oklch(0.935 0.008 90);
-  --sidebar-primary: oklch(0.92 0.008 90);
-  --sidebar-primary-foreground: oklch(0.16 0.012 260);
-  --sidebar-accent: oklch(0.20 0.015 260);
-  --sidebar-accent-foreground: oklch(0.9 0.008 90);
-  --sidebar-border: oklch(0.25 0.012 260);
-  --sidebar-ring: oklch(0.50 0.015 260);
+  --sidebar: #1f1e1b;
+  --sidebar-foreground: #e8e4dc;
+  --sidebar-primary: #d97a56;
+  --sidebar-primary-foreground: #1a1917;
+  --sidebar-accent: #2a2825;
+  --sidebar-accent-foreground: #e8e4dc;
+  --sidebar-border: #2e2c28;
+  --sidebar-ring: #d97a56;
+}
+
+/* System font stack — matches Open Design */
+:root {
+  --font-sans-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  --font-mono-stack: "SF Mono", "Monaco", "Inconsolata", "Fira Mono",
+    "Droid Sans Mono", "Source Code Pro", monospace;
 }
 
 @layer base {
@@ -141,27 +153,30 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-size: 13.5px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
 /* ============================================================================
-   Studio-specific styles — minimal, clean
+   Open Design — Custom styles
    ============================================================================ */
 
-/* Custom scrollbar — ultra thin, barely visible */
+/* Scrollbar — thin, warm */
 .studio-scrollbar::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+  width: 5px;
+  height: 5px;
 }
 .studio-scrollbar::-webkit-scrollbar-track {
   background: transparent;
 }
 .studio-scrollbar::-webkit-scrollbar-thumb {
-  background: oklch(0.5 0 0 / 15%);
-  border-radius: 2px;
+  background: #989590 / 20%;
+  border-radius: 3px;
 }
 .studio-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: oklch(0.5 0 0 / 25%);
+  background: #989590 / 35%;
 }
 
 /* Streaming cursor */
@@ -173,11 +188,40 @@
   animation: streaming-cursor 1s ease-in-out infinite;
 }
 
-/* Subtle pulse for status indicators */
+/* Open Design canonical motion */
 @keyframes subtle-pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
 }
 .subtle-pulse {
   animation: subtle-pulse 2s ease-in-out infinite;
+}
+
+/* OD fade-slide-up entrance */
+@keyframes od-slide-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.od-slide-up {
+  animation: od-slide-up 200ms cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+/* Accent tint background utility */
+.bg-accent-tint {
+  background-color: var(--accent-tint);
+}
+.dark .bg-accent-tint {
+  background-color: var(--accent-tint);
+}
+
+.bg-accent-soft {
+  background-color: var(--accent-soft);
+}
+.dark .bg-accent-soft {
+  background-color: var(--accent-soft);
+}
+
+/* Border-left accent indicator */
+.border-l-accent {
+  border-left: 2px solid var(--accent);
 }

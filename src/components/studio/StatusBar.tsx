@@ -1,6 +1,6 @@
 // ============================================================================
 // AI Agent Studio - StatusBar Component
-// Claude-inspired: ultra minimal, single line, barely there
+// Open Design pattern: compact, warm, barely there
 // ============================================================================
 
 "use client";
@@ -8,7 +8,6 @@
 import {
   Wifi,
   WifiOff,
-  Loader2,
   Circle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -18,27 +17,17 @@ export function StatusBar() {
   const { agentStatus, isStreaming } = useStudioStore();
 
   const StatusIcon = agentStatus.connected ? Wifi : WifiOff;
-  const statusLabel = agentStatus.connected ? "Connected" : "Offline";
-
-  const agentLabel: Record<string, string> = {
-    idle: "Ready",
-    thinking: "Thinking",
-    streaming: "Streaming",
-    error: "Error",
-  };
 
   return (
-    <div className="flex items-center justify-between h-6 px-4 text-[10px] text-muted-foreground/50 shrink-0">
-      <div className="flex items-center gap-2.5">
-        <div className="flex items-center gap-1">
-          <StatusIcon className={cn("size-2.5", agentStatus.connected ? "text-emerald-500/60" : "text-foreground/20")} />
-          <span>{statusLabel}</span>
-        </div>
-        <div className="w-px h-2.5 bg-border" />
-        <span>{agentLabel[agentStatus.status] || "Ready"}</span>
+    <div className="flex items-center justify-between h-6 px-3 border-t border-border text-[10px] text-muted-foreground/50 shrink-0">
+      <div className="flex items-center gap-2">
+        <StatusIcon className={cn("size-2.5", agentStatus.connected ? "text-accent/60" : "text-muted-foreground/30")} />
+        <span>{agentStatus.connected ? "Connected" : "Offline"}</span>
+        <span className="text-muted-foreground/30">·</span>
+        <span>{agentStatus.status === "idle" ? "Ready" : agentStatus.status === "thinking" ? "Thinking" : agentStatus.status === "streaming" ? "Streaming" : "Error"}</span>
         {agentStatus.model && agentStatus.model !== "unknown" && (
           <>
-            <div className="w-px h-2.5 bg-border" />
+            <span className="text-muted-foreground/30">·</span>
             <span>{agentStatus.model}</span>
           </>
         )}
@@ -47,8 +36,8 @@ export function StatusBar() {
       <div className="flex items-center gap-2">
         {isStreaming && (
           <div className="flex items-center gap-1">
-            <Circle className="size-1.5 fill-emerald-500/60 text-emerald-500/60 subtle-pulse" />
-            <span className="text-emerald-500/60">Live</span>
+            <Circle className="size-1.5 fill-accent/50 text-accent/50 subtle-pulse" />
+            <span className="text-accent/60">Live</span>
           </div>
         )}
       </div>
