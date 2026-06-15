@@ -607,10 +607,10 @@ export function StudioLayout() {
     setZOrder((prev) => ({ ...prev, [card]: maxZ + 1 }));
   }, [zOrder]);
 
-  // Calculate default positions based on viewport (approximate)
-  const chatDefault = { x: 20, y: 20 };
-  const artifactDefault = { x: 420, y: 20 };
-  const critiqueDefault = { x: 420, y: 480 };
+  // Default positions — responsive to viewport
+  const chatDefault = { x: 24, y: 24 };
+  const artifactDefault = { x: 424, y: 24 };
+  const critiqueDefault = { x: 424, y: 460 };
 
   return (
     <div className="flex flex-col h-screen overflow-hidden" style={{ background: "var(--bg-app)", color: "var(--text-color)" }}>
@@ -671,42 +671,42 @@ export function StudioLayout() {
         {/* Dot pattern background */}
         <div className="absolute inset-0 pointer-events-none workspace-pattern" style={{ opacity: 0.3 }} />
 
-        {/* Chat Card */}
+        {/* Chat Card — left side, full height */}
         <FloatingCard
           visible={chatCardVisible}
           onClose={() => setChatCardVisible(false)}
           title="Chat"
           icon={MessageSquare}
           defaultPos={chatDefault}
-          defaultSize={{ w: 380, h: "calc(100% - 40px)" }}
+          defaultSize={{ w: 380, h: 560 }}
           zIndex={zOrder.chat}
           onBringToFront={() => bringToFront("chat")}
         >
           <ChatCardContent />
         </FloatingCard>
 
-        {/* Artifact Card */}
+        {/* Artifact Card — right top */}
         <FloatingCard
           visible={artifactCardVisible}
           onClose={() => setArtifactCardVisible(false)}
           title="Artifact"
           icon={Layers}
           defaultPos={artifactDefault}
-          defaultSize={{ w: "calc(100% - 440px)", h: 420 }}
+          defaultSize={{ w: 700, h: 420 }}
           zIndex={zOrder.artifact}
           onBringToFront={() => bringToFront("artifact")}
         >
           <ArtifactCardContent />
         </FloatingCard>
 
-        {/* Critique Card */}
+        {/* Critique Card — right bottom, slightly overlapping */}
         <FloatingCard
           visible={critiqueCardVisible}
           onClose={() => setCritiqueCardVisible(false)}
           title="Critique"
           icon={Sparkles}
-          defaultPos={critiqueDefault}
-          defaultSize={{ w: "calc(100% - 440px)", h: 220 }}
+          defaultPos={{ x: 444, y: 460 }}
+          defaultSize={{ w: 680, h: 200 }}
           zIndex={zOrder.critique}
           onBringToFront={() => bringToFront("critique")}
         >
