@@ -13,11 +13,16 @@ import type {
   AgentStatus,
   SseTransportEvent,
 } from "@/lib/types";
+import type { ThemeId } from "@/lib/themes";
 
 // ---------------------------------------------------------------------------
 // Studio Store
 // ---------------------------------------------------------------------------
 interface StudioState {
+  // Theme
+  activeTheme: ThemeId;
+  setActiveTheme: (theme: ThemeId) => void;
+
   // Modality
   activeModality: Modality;
   setActiveModality: (modality: Modality) => void;
@@ -66,9 +71,13 @@ interface StudioState {
   isStreaming: boolean;
   setIsStreaming: (streaming: boolean) => void;
 
-  // Sidebar
-  sidebarOpen: boolean;
-  setSidebarOpen: (open: boolean) => void;
+  // Floating cards visibility
+  chatCardVisible: boolean;
+  setChatCardVisible: (visible: boolean) => void;
+  artifactCardVisible: boolean;
+  setArtifactCardVisible: (visible: boolean) => void;
+  critiqueCardVisible: boolean;
+  setCritiqueCardVisible: (visible: boolean) => void;
 
   // Critique panel
   critiqueExpanded: boolean;
@@ -80,6 +89,10 @@ interface StudioState {
 }
 
 export const useStudioStore = create<StudioState>((set) => ({
+  // Theme
+  activeTheme: "slate",
+  setActiveTheme: (theme) => set({ activeTheme: theme }),
+
   // Modality
   activeModality: "text",
   setActiveModality: (modality) => set({ activeModality: modality }),
@@ -155,7 +168,7 @@ export const useStudioStore = create<StudioState>((set) => ({
   sseEvents: [],
   addSseEvent: (event) =>
     set((state) => ({
-      sseEvents: [...state.sseEvents.slice(-199), event], // Keep last 200 events
+      sseEvents: [...state.sseEvents.slice(-199), event],
     })),
   clearSseEvents: () => set({ sseEvents: [] }),
 
@@ -163,9 +176,13 @@ export const useStudioStore = create<StudioState>((set) => ({
   isStreaming: false,
   setIsStreaming: (streaming) => set({ isStreaming: streaming }),
 
-  // Sidebar
-  sidebarOpen: true,
-  setSidebarOpen: (open) => set({ sidebarOpen: open }),
+  // Floating cards visibility
+  chatCardVisible: true,
+  setChatCardVisible: (visible) => set({ chatCardVisible: visible }),
+  artifactCardVisible: true,
+  setArtifactCardVisible: (visible) => set({ artifactCardVisible: visible }),
+  critiqueCardVisible: true,
+  setCritiqueCardVisible: (visible) => set({ critiqueCardVisible: visible }),
 
   // Critique panel
   critiqueExpanded: false,

@@ -1,6 +1,7 @@
 // ============================================================================
 // AI Agent Studio - PluginContext Component
 // Open Design pattern: @mention-style plugin list, accent-tinted active
+// Polished with visual refinements
 // ============================================================================
 
 "use client";
@@ -37,18 +38,26 @@ function PluginItem({
     <button
       onClick={onToggle}
       className={cn(
-        "flex items-center gap-2 px-2 py-1 rounded text-[11px] transition-colors w-full text-left",
+        "flex items-center gap-2 px-2 py-1.5 rounded-md text-[11px] transition-all w-full text-left group",
         plugin.enabled
-          ? "bg-accent-tint text-accent font-medium"
-          : "text-muted-foreground/50 hover:text-foreground hover:bg-secondary"
+          ? "font-medium"
+          : "text-[var(--text-soft)] hover:text-foreground hover:bg-[var(--bg-subtle)]"
       )}
+      style={
+        plugin.enabled
+          ? {
+              background: "var(--accent-tint)",
+              color: "var(--accent)",
+            }
+          : undefined
+      }
     >
       <Icon className="size-3 shrink-0" />
       <span className="truncate flex-1">{plugin.name}</span>
       {plugin.enabled ? (
         <Check className="size-2.5 shrink-0" />
       ) : (
-        <Plus className="size-2.5 shrink-0 text-muted-foreground/30" />
+        <Plus className="size-2.5 shrink-0" style={{ color: "var(--text-faint)" }} />
       )}
     </button>
   );
@@ -61,7 +70,10 @@ export function PluginContext() {
 
   return (
     <div className="flex flex-col gap-1.5">
-      <span className="text-[9px] uppercase tracking-widest text-muted-foreground/40 font-semibold px-1">
+      <span
+        className="text-[9px] uppercase tracking-widest font-semibold px-1"
+        style={{ color: "var(--text-faint)" }}
+      >
         Plugins
       </span>
       {plugins.map((plugin) => (
@@ -69,15 +81,24 @@ export function PluginContext() {
       ))}
       {brandSystems.length > 0 && (
         <>
-          <span className="text-[9px] uppercase tracking-widest text-muted-foreground/40 font-semibold px-1 pt-1">
+          <span
+            className="text-[9px] uppercase tracking-widest font-semibold px-1 pt-1"
+            style={{ color: "var(--text-faint)" }}
+          >
             Brand
           </span>
           {activeBrandSystem ? (
-            <div className="flex items-center gap-2 px-2 py-1 rounded bg-accent-tint text-accent text-[11px]">
+            <div
+              className="flex items-center gap-2 px-2 py-1.5 rounded-md text-[11px]"
+              style={{ background: "var(--accent-tint)", color: "var(--accent)" }}
+            >
               <Shield className="size-3" />
               <span className="truncate flex-1">{activeBrandSystem.name}</span>
-              <button onClick={removeBrandSystem} className="text-accent/50 hover:text-accent">
-                <span className="text-[9px]">✕</span>
+              <button
+                onClick={removeBrandSystem}
+                className="text-accent/50 hover:text-accent transition-colors"
+              >
+                <span className="text-[9px]">&times;</span>
               </button>
             </div>
           ) : (
@@ -85,7 +106,7 @@ export function PluginContext() {
               <button
                 key={system.id}
                 onClick={() => applyBrandSystem(system.id)}
-                className="flex items-center gap-2 px-2 py-1 rounded text-[11px] text-muted-foreground/50 hover:text-foreground hover:bg-secondary transition-colors w-full text-left"
+                className="flex items-center gap-2 px-2 py-1.5 rounded-md text-[11px] text-[var(--text-soft)] hover:text-foreground hover:bg-[var(--bg-subtle)] transition-colors w-full text-left"
               >
                 <Shield className="size-3" />
                 <span className="truncate">{system.name}</span>

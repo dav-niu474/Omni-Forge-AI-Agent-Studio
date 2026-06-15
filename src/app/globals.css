@@ -4,39 +4,39 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: var(--bg-app);
+  --color-foreground: var(--text-color);
   --font-sans: var(--font-sans-stack);
   --font-mono: var(--font-mono-stack);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
+  --color-sidebar-ring: var(--accent);
+  --color-sidebar-border: var(--border);
+  --color-sidebar-accent-foreground: var(--text-color);
+  --color-sidebar-accent: var(--bg-subtle);
+  --color-sidebar-primary-foreground: var(--send-fg);
+  --color-sidebar-primary: var(--accent);
+  --color-sidebar-foreground: var(--text-color);
+  --color-sidebar: var(--bg-panel);
+  --color-chart-5: var(--accent);
+  --color-chart-4: #9f7aea;
+  --color-chart-3: #38a169;
+  --color-chart-2: #5b8def;
+  --color-chart-1: var(--accent);
+  --color-ring: var(--accent);
+  --color-input: var(--border);
   --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: #e53e3e;
+  --color-accent-foreground: var(--send-fg);
   --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
+  --color-muted-foreground: var(--text-muted);
+  --color-muted: var(--bg-muted);
+  --color-secondary-foreground: var(--text-strong);
+  --color-secondary: var(--bg-subtle);
+  --color-primary-foreground: var(--bg-app);
+  --color-primary: var(--text-strong);
+  --color-popover-foreground: var(--text-color);
+  --color-popover: var(--bg-panel);
+  --color-card-foreground: var(--text-color);
+  --color-card: var(--bg-panel);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -44,107 +44,66 @@
 }
 
 /* ============================================================================
-   Open Design Token System — Warm neutral + Terracotta accent
+   Default theme tokens — overridden at runtime by StudioThemeProvider
+   Defaults to Cool Slate theme
    ============================================================================ */
 
 :root {
-  --radius: 0.5rem;
-  /* Warm off-white — never pure white */
-  --background: #faf9f7;
-  --foreground: #1a1916;
-  --card: #fdfcfa;
-  --card-foreground: #1a1916;
-  --popover: #fffefc;
-  --popover-foreground: #1a1916;
-  /* Primary: warm charcoal */
-  --primary: #1a1916;
-  --primary-foreground: #fdfcfa;
-  /* Secondary: subtle warm fill */
-  --secondary: #f4f5f7;
-  --secondary-foreground: #0d0c0a;
-  /* Muted: pressed/inactive backgrounds */
-  --muted: #eef1f5;
-  --muted-foreground: #74716b;
-  /* Accent: TERRACOTTA — the brand color */
-  --accent: #c96442;
-  --accent-foreground: #fffefc;
-  /* Accent tints for subtle backgrounds */
-  --accent-soft: #f5d8cb;
-  --accent-tint: #fbeee5;
-  /* Destructive */
-  --destructive: #c53030;
-  /* Borders: warm and subtle */
-  --border: #e1e5eb;
-  --input: #e1e5eb;
-  --ring: #c96442;
-  /* Charts */
-  --chart-1: #c96442;
-  --chart-2: #2563eb;
-  --chart-3: #17a34a;
-  --chart-4: #7c3aed;
-  --chart-5: #b45a3b;
-  /* Sidebar */
-  --sidebar: #fdfcfa;
-  --sidebar-foreground: #1a1916;
-  --sidebar-primary: #c96442;
-  --sidebar-primary-foreground: #fffefc;
-  --sidebar-accent: #f4f5f7;
-  --sidebar-accent-foreground: #1a1916;
-  --sidebar-border: #e1e5eb;
-  --sidebar-ring: #c96442;
-}
+  --radius: 0.625rem;
 
-.dark {
-  /* Warm dark — NOT pure black */
-  --background: #1a1917;
-  --foreground: #e8e4dc;
-  --card: #1f1e1b;
-  --card-foreground: #e8e4dc;
-  --popover: #1f1e1b;
-  --popover-foreground: #e8e4dc;
-  /* Primary: warm off-white */
-  --primary: #e8e4dc;
-  --primary-foreground: #1a1917;
-  /* Secondary */
-  --secondary: #2a2825;
-  --secondary-foreground: #e8e4dc;
-  /* Muted */
-  --muted: #2a2825;
-  --muted-foreground: #989590;
-  /* Accent: lighter terracotta for dark mode */
-  --accent: #d97a56;
-  --accent-foreground: #1a1917;
-  --accent-soft: #3d2a1f;
-  --accent-tint: #2d1f18;
-  /* Destructive */
+  /* Default: Cool Slate */
+  --bg-app: #0a0a0c;
+  --bg-panel: #111113;
+  --bg-subtle: #1a1a1e;
+  --bg-muted: #222228;
+  --bg-accent-tint: #111827;
+  --border: #2a2a30;
+  --border-soft: #1f1f24;
+  --text-color: #e4e4e8;
+  --text-strong: #f4f4f6;
+  --text-muted: #8b8b96;
+  --text-soft: #5c5c66;
+  --text-faint: #3e3e46;
+  --accent: #6366f1;
+  --accent-soft: #1e1b4b;
+  --accent-tint: #111827;
+  --accent-hover: #818cf8;
+  --accent-foreground: #ffffff;
+  --dot-glow: rgba(99,102,241,0.4);
+  --send-bg: #6366f1;
+  --send-fg: #ffffff;
+  --shadow-color: rgba(0,0,0,0.6);
+  --card-bg: rgba(17,17,19,0.88);
+  --card-border: rgba(42,42,48,0.6);
+  --card-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.3);
+  --glass-bg: rgba(17,17,19,0.75);
+  --glass-border: rgba(255,255,255,0.06);
+
+  /* Shadcn compatibility */
+  --background: var(--bg-app);
+  --foreground: var(--text-color);
+  --card: var(--bg-panel);
+  --card-foreground: var(--text-color);
+  --popover: var(--bg-panel);
+  --popover-foreground: var(--text-color);
+  --primary: var(--text-strong);
+  --primary-foreground: var(--bg-app);
+  --secondary: var(--bg-subtle);
+  --secondary-foreground: var(--text-strong);
+  --muted: var(--bg-muted);
+  --muted-foreground: var(--text-muted);
+  --input: var(--border);
+  --ring: var(--accent);
   --destructive: #e53e3e;
-  /* Borders: warm dark */
-  --border: #2e2c28;
-  --input: #2e2c28;
-  --ring: #d97a56;
-  /* Charts */
-  --chart-1: #d97a56;
-  --chart-2: #5b8def;
-  --chart-3: #38a169;
-  --chart-4: #9f7aea;
-  --chart-5: #c96442;
-  /* Sidebar */
-  --sidebar: #1f1e1b;
-  --sidebar-foreground: #e8e4dc;
-  --sidebar-primary: #d97a56;
-  --sidebar-primary-foreground: #1a1917;
-  --sidebar-accent: #2a2825;
-  --sidebar-accent-foreground: #e8e4dc;
-  --sidebar-border: #2e2c28;
-  --sidebar-ring: #d97a56;
-}
 
-/* System font stack — matches Open Design */
-:root {
-  --font-sans-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
-  --font-mono-stack: "SF Mono", "Monaco", "Inconsolata", "Fira Mono",
-    "Droid Sans Mono", "Source Code Pro", monospace;
+  --font-sans-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei UI", "Noto Sans", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono-stack: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Motion tokens */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --dur-quick: 120ms;
+  --dur-enter: 200ms;
+  --dur-exit: 140ms;
 }
 
 @layer base {
@@ -152,18 +111,20 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
     font-size: 13.5px;
+    line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    background: var(--bg-app);
+    color: var(--text-color);
   }
 }
 
 /* ============================================================================
-   Open Design — Custom styles
+   Custom Styles
    ============================================================================ */
 
-/* Scrollbar — thin, warm */
+/* Scrollbar — thin, subtle */
 .studio-scrollbar::-webkit-scrollbar {
   width: 5px;
   height: 5px;
@@ -172,11 +133,11 @@
   background: transparent;
 }
 .studio-scrollbar::-webkit-scrollbar-thumb {
-  background: #989590 / 20%;
+  background: rgba(152, 149, 144, 0.2);
   border-radius: 3px;
 }
 .studio-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #989590 / 35%;
+  background: rgba(152, 149, 144, 0.35);
 }
 
 /* Streaming cursor */
@@ -188,7 +149,7 @@
   animation: streaming-cursor 1s ease-in-out infinite;
 }
 
-/* Open Design canonical motion */
+/* Subtle pulse */
 @keyframes subtle-pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
@@ -197,31 +158,13 @@
   animation: subtle-pulse 2s ease-in-out infinite;
 }
 
-/* OD fade-slide-up entrance */
-@keyframes od-slide-up {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.od-slide-up {
-  animation: od-slide-up 200ms cubic-bezier(0.23, 1, 0.32, 1) forwards;
+/* Workspace grid dot pattern */
+.workspace-pattern {
+  background-image: radial-gradient(circle, var(--border) 0.5px, transparent 0.5px);
+  background-size: 24px 24px;
 }
 
-/* Accent tint background utility */
-.bg-accent-tint {
-  background-color: var(--accent-tint);
-}
-.dark .bg-accent-tint {
-  background-color: var(--accent-tint);
-}
-
-.bg-accent-soft {
-  background-color: var(--accent-soft);
-}
-.dark .bg-accent-soft {
-  background-color: var(--accent-soft);
-}
-
-/* Border-left accent indicator */
-.border-l-accent {
-  border-left: 2px solid var(--accent);
+/* Textarea placeholder */
+textarea::placeholder {
+  color: var(--text-faint) !important;
 }

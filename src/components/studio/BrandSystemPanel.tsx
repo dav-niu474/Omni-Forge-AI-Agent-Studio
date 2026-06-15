@@ -1,6 +1,6 @@
 // ============================================================================
 // AI Agent Studio - BrandSystemPanel Component
-// Open Design pattern: minimal, accent-tinted
+// Open Design pattern: minimal, accent-tinted — polished
 // ============================================================================
 
 "use client";
@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useStudioStore } from "@/lib/store";
 
@@ -66,17 +65,25 @@ export function BrandSystemPanel() {
   if (isEditing) {
     return (
       <div className="flex flex-col gap-1.5">
-        <span className="text-[9px] uppercase tracking-widest text-muted-foreground/40 font-semibold px-1">
+        <span
+          className="text-[9px] uppercase tracking-widest font-semibold px-1"
+          style={{ color: "var(--text-faint)" }}
+        >
           Brand System
         </span>
         <Textarea
           value={editContent}
           onChange={(e) => setEditContent(e.target.value)}
-          className="min-h-[80px] text-[11px] font-mono border-border"
+          className="min-h-[80px] text-[11px] font-mono"
+          style={{ borderColor: "var(--border)" }}
           placeholder="Write your BRAND.md..."
         />
         <div className="flex items-center gap-1">
-          <Button size="sm" className="h-6 text-[10px] gap-1 bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleSave}>
+          <Button
+            size="sm"
+            className="h-6 text-[10px] gap-1 bg-accent text-accent-foreground hover:bg-accent-hover"
+            onClick={handleSave}
+          >
             <Save className="size-2.5" /> Save
           </Button>
           <Button variant="ghost" size="sm" className="h-6 text-[10px]" onClick={() => setIsEditing(false)}>
@@ -90,26 +97,35 @@ export function BrandSystemPanel() {
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center justify-between px-1">
-        <span className="text-[9px] uppercase tracking-widest text-muted-foreground/40 font-semibold">
+        <span
+          className="text-[9px] uppercase tracking-widest font-semibold"
+          style={{ color: "var(--text-faint)" }}
+        >
           Brand
         </span>
         {activeBrandSystem && (
-          <button onClick={handleEdit} className="text-[9px] text-muted-foreground/40 hover:text-accent transition-colors">
+          <button
+            onClick={handleEdit}
+            className="text-[9px] hover:text-accent transition-colors"
+            style={{ color: "var(--text-faint)" }}
+          >
             Edit
           </button>
         )}
       </div>
       {activeBrandSystem ? (
-        <div className="px-2 py-1.5 rounded bg-accent-tint text-[11px] text-accent">
-          <div className="flex items-center gap-1.5">
-            <Shield className="size-3" />
-            <span className="truncate">{activeBrandSystem.name}</span>
-          </div>
+        <div
+          className="px-2 py-1.5 rounded-md text-[11px] flex items-center gap-1.5"
+          style={{ background: "var(--accent-tint)", color: "var(--accent)" }}
+        >
+          <Shield className="size-3" />
+          <span className="truncate">{activeBrandSystem.name}</span>
         </div>
       ) : (
         <button
           onClick={handleEdit}
-          className="flex items-center gap-1.5 px-2 py-1.5 rounded text-[11px] text-muted-foreground/40 hover:text-accent hover:bg-accent-tint transition-colors w-full text-left"
+          className="flex items-center gap-1.5 px-2 py-1.5 rounded-md text-[11px] hover:text-accent hover:bg-[var(--accent-tint)] transition-colors w-full text-left"
+          style={{ color: "var(--text-faint)" }}
         >
           <Edit3 className="size-3" />
           Create BRAND.md

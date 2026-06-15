@@ -1,0 +1,2002 @@
+     1→import {
+     2→  useCallback,
+     3→  useEffect,
+     4→  useId,
+     5→  useMemo,
+     6→  useRef,
+     7→  useState,
+     8→  useLayoutEffect,
+     9→  type CSSProperties,
+    10→  type KeyboardEvent as ReactKeyboardEvent,
+    11→  type PointerEvent as ReactPointerEvent,
+    12→} from 'react';
+    13→import { AnimatePresence } from 'motion/react';
+    14→import { createHtmlArtifactManifest, inferLegacyManifest } from '../artifacts/manifest';
+    15→import { resolveHtmlPointerArtifactTarget } from '../artifacts/pointer';
+    16→import { validateHtmlArtifact } from '../artifacts/validate';
+    17→import { recoverHtmlArtifactFromPrecedingDocument, recoverHtmlDocumentFromMarkdownFence, recoverStandaloneHtmlDocument } from '../artifacts/recover';
+    18→import { createArtifactParser } from '../artifacts/parser';
+    19→import {
+    20→  findFirstQuestionForm,
+    21→  hasUnterminatedQuestionForm,
+    22→  parsePartialQuestionForm,
+    23→  type QuestionForm,
+    24→} from '../artifacts/question-form';
+    25→import { parseSubmittedAnswers } from './QuestionForm';
+    26→import { useI18n } from '../i18n';
+    27→import { streamMessage } from '../providers/anthropic';
+    28→import {
+    29→  fetchChatRunStatus,
+    30→  fetchVelaLoginStatus,
+    31→  listActiveChatRuns,
+    32→  listProjectRuns,
+    33→  reattachDaemonRun,
+    34→  reportChatRunFeedback,
+    35→  streamViaDaemon,
+    36→} from '../providers/daemon';
+    37→import { fetchElevenLabsVoiceOptions } from '../providers/elevenlabs-voices';
+    38→import { normalizeCustomReason } from '@open-design/contracts/analytics';
+    39→import {
+    40→  deletePreviewComment,
+    41→  fetchConnectorStatuses,
+    42→  fetchPreviewComments,
+    43→  fetchDesignSystem,
+    44→  fetchDesignTemplate,
+    45→  fetchProjectDesignSystemPackageAudit,
+    46→  fetchLiveArtifacts,
+    47→  fetchProjectFiles,
+    48→  fetchSkill,
+    49→  patchPreviewCommentStatus,
+    50→  projectRawUrl,
+    51→  uploadProjectFiles,
+    52→  upsertPreviewComment,
+    53→  writeProjectTextFile,
+    54→} from '../providers/registry';
+    55→import { useProjectFileEvents, type ProjectEvent } from '../providers/project-events';
+    56→import { useCoalescedCallback } from '../hooks/useCoalescedCallback';
+    57→import {
+    58→  composeSystemPrompt,
+    59→  type AudioVoiceOption,
+    60→  type MemorySystemPromptResponse,
+    61→  type ResearchOptions,
+    62→} from '@open-design/contracts';
+    63→import {
+    64→  anonymizeArtifactId,
+    65→  artifactKindToTracking,
+    66→  projectKindToTracking,
+    67→} from '@open-design/contracts/analytics';
+    68→import type {
+    69→  TrackingArtifactKind,
+    70→  TrackingDesignSystemApplyTargetKind,
+    71→  TrackingDesignSystemOrigin,
+    72→  TrackingDesignSystemStatusValue,
+    73→} from '@open-design/contracts/analytics';
+    74→import { useAnalytics } from '../analytics/provider';
+    75→import {
+    76→  trackArtifactHeaderClick,
+    77→  trackComposerBarClick,
+    78→  trackDesignSystemApplyResult,
+    79→  trackPageView,
+    80→} from '../analytics/events';
+    81→import {
+    82→  clearOnboardingSessionId,
+    83→  peekOnboardingSessionId,
+    84→} from '../analytics/onboarding-session';
+    85→import { navigate } from '../router';
+    86→import { agentDisplayName, agentModelDisplayName } from '../utils/agentLabels';
+    87→import { isMacPlatform } from '../utils/platform';
+    88→import {
+    89→  canAutoRenameProjectFromPrompt,
+    90→  summarizeProjectNameFromPrompt,
+    91→} from '../utils/projectName';
+    92→import {
+    93→  apiProtocolAgentId,
+    94→  apiProtocolModelLabel,
+    95→  usesAnthropicProxy,
+    96→} from '../utils/apiProtocol';
+    97→import { playSound, showCompletionNotification } from '../utils/notifications';
+    98→import { randomUUID } from '../utils/uuid';
+    99→import { DEFAULT_NOTIFICATIONS } from '../state/config';
+   100→import type { TodoItem } from '../runtime/todos';
+   101→import { appendErrorStatusEvent } from '../runtime/chat-events';
+   102→import { RESUME_CONTINUE_PROMPT } from '../runtime/resume';
+   103→import {
+   104→  buildDesignSystemPackageAuditRepairPrompt,
+   105→  summarizeDesignSystemPackageAudit,
+   106→} from '../runtime/design-system-package-audit';
+   107→import { isLiveArtifactTabId, liveArtifactTabId } from '../types';
+   108→import {
+   109→  DESIGN_SYSTEM_WORKSPACE_DISPLAY_TITLE,
+   110→  isDesignSystemWorkspacePrompt,
+   111→} from '../design-system-auto-prompt';
+   112→import {
+   113→  createConversation,
+   114→  deleteConversation as deleteConversationApi,
+   115→  fetchAppliedPluginSnapshot,
+   116→  getTemplate,
+   117→  installGeneratedPluginFolder,
+   118→  listConversations,
+   119→  listMessages,
+   120→  loadTabs,
+   121→  patchConversation,
+   122→  patchProject,
+   123→  saveMessage,
+   124→  startGeneratedPluginShareTask,
+   125→  cacheTabsLocally,
+   126→  persistTabsToDaemonNow,
+   127→  listPlugins,
+   128→  type SaveMessageOptions,
+   129→  waitGeneratedPluginShareTask,
+   130→} from '../state/projects';
+   131→import type { AppliedPluginSnapshot, ChatAnalyticsEntryFrom, ChatSessionMode, InstalledPluginRecord, WorkspaceContextItem } from '@open-design/contracts';
+   132→import type {
+   133→  AgentEvent,
+   134→  AgentInfo,
+   135→  AppConfig,
+   136→  Artifact,
+   137→  ChatAttachment,
+   138→  ChatCommentAttachment,
+   139→  ChatMessage,
+   140→  ChatMessageFeedbackChange,
+   141→  Conversation,
+   142→  DesignSystemSummary,
+   143→  OpenTabsState,
+   144→  Project,
+   145→  ProjectMetadata,
+   146→  PreviewComment,
+   147→  PreviewCommentAttachment,
+   148→  PreviewCommentTarget,
+   149→  ProjectFile,
+   150→  ProjectTemplate,
+   151→  LiveArtifactEventItem,
+   152→  LiveArtifactSummary,
+   153→  SkillSummary,
+   154→} from '../types';
+   155→import { historyWithApiAttachmentContext } from '../api-attachment-context';
+   156→import {
+   157→  commentsToAttachments,
+   158→  historyWithCommentAttachmentContext,
+   159→  mergeAttachedComments,
+   160→  mergePreviewCommentAttachments,
+   161→  queuedSlideNavTarget,
+   162→  removeAttachedComment,
+   163→} from '../comments';
+   164→import { filterImplicitProducedFiles } from '../produced-files';
+   165→import { buildPptxExportPrompt } from '../lib/build-pptx-export-prompt';
+   166→import { AvatarMenu } from './AvatarMenu';
+   167→import { EntrySettingsMenu } from './EntrySettingsMenu';
+   168→import { HandoffButton } from './HandoffButton';
+   169→import { Icon } from './Icon';
+   170→import { DesignSystemPicker } from './DesignSystemPicker';
+   171→import { PluginDetailsModal } from './PluginDetailsModal';
+   172→import { DesignSystemPreviewModal } from './DesignSystemPreviewModal';
+   173→import { ChatPane } from './ChatPane';
+   174→import type { QuestionFormOpenRequest } from './AssistantMessage';
+   175→import type { ChatSendMeta } from './ChatComposer';
+   176→import {
+   177→  CritiqueTheaterMount,
+   178→  useCritiqueTheaterEnabled,
+   179→} from './Theater';
+   180→import { useIframeKeepAlivePool } from './IframeKeepAlivePool';
+   181→import {
+   182→  decideAutoOpenAfterWrite,
+   183→  selectAutoOpenProducedHtml,
+   184→} from './auto-open-file';
+   185→import { buildRepoImportPrompt, designSystemNeedsRepoConnect } from './design-system-github-evidence';
+   186→import { collectReferencedJsxNames } from '../runtime/jsx-module-refs';
+   187→import { FileWorkspace } from './FileWorkspace';
+   188→import {
+   189→  type PluginFolderAgentAction,
+   190→} from './design-files/pluginFolderActions';
+   191→import { SHARE_TO_COMMUNITY_PROMPT } from './share-to-community/shareToCommunityPrompt';
+   192→import { CenteredLoader } from './Loading';
+   193→import type { SettingsSection } from './SettingsDialog';
+   194→import { Toast } from './Toast';
+   195→import { useDesignMdState } from '../hooks/useDesignMdState';
+   196→import { useFinalizeProject } from '../hooks/useFinalizeProject';
+   197→import { useProjectDetail } from '../hooks/useProjectDetail';
+   198→import { useTerminalLaunch } from '../hooks/useTerminalLaunch';
+   199→import { buildContinueInCliToast } from '../lib/build-continue-in-cli-toast';
+   200→import { buildClipboardPrompt } from '../lib/build-clipboard-prompt';
+   201→import { copyToClipboard } from '../lib/copy-to-clipboard';
+   202→import { effectiveMaxTokens } from '../state/maxTokens';
+   203→import { effectiveAgentModelChoice } from './agentModelSelection';
+   204→import { mediaExecutionPolicyForProjectMetadata } from '../media/execution-policy';
+   205→import { mediaModelProviderId } from '../media/models';
+   206→import {
+   207→  useByokImageModelOptions,
+   208→  useByokVideoModelOptions,
+   209→  useByokSpeechModelOptions,
+   210→} from '../media/aihubmix-image-models';
+   211→import {
+   212→  buildFinalizeCredentialsMissingToast,
+   213→  buildFinalizeRequest,
+   214→} from '../lib/resolve-finalize-request';
+   215→
+   216→
+   217→type ProjectChatSendMeta = ChatSendMeta & {
+   218→  queueOnly?: boolean;
+   219→  retryOfAssistantId?: string;
+   220→  sessionMode?: ChatSessionMode;
+   221→  /** Overrides the run_created / run_finished `entry_from` analytics prop for
+   222→   *  this send (e.g. 'resume_continue' from the resumable-failure Continue
+   223→   *  action). Behavior never depends on it; it only shapes PostHog props. */
+   224→  entryFrom?: ChatAnalyticsEntryFrom;
+   225→};
+   226→
+   227→export function mergeSavedPreviewComment(current: PreviewComment[], saved: PreviewComment): PreviewComment[] {
+   228→  const existingIndex = current.findIndex((comment) => comment.id === saved.id);
+   229→  if (existingIndex < 0) return [...current, saved];
+   230→  return current.map((comment, index) => (index === existingIndex ? saved : comment));
+   231→}
+   232→
+   233→function mergeServerMessageWithLocal(server: ChatMessage, local?: ChatMessage): ChatMessage {
+   234→  if (!local) return server;
+   235→  const merged: ChatMessage = { ...server };
+   236→  if (!server.producedFiles?.length && local.producedFiles?.length) {
+   237→    merged.producedFiles = local.producedFiles;
+   238→  }
+   239→  if (!server.preTurnFileNames?.length && local.preTurnFileNames?.length) {
+   240→    merged.preTurnFileNames = local.preTurnFileNames;
+   241→  }
+   242→  if (!server.lastRunEventId && local.lastRunEventId) {
+   243→    merged.lastRunEventId = local.lastRunEventId;
+   244→  }
+   245→  if (!server.startedAt && local.startedAt) {
+   246→    merged.startedAt = local.startedAt;
+   247→  }
+   248→  if (!server.endedAt && local.endedAt) {
+   249→    merged.endedAt = local.endedAt;
+   250→  }
+   251→  if (!server.runStatus && local.runStatus) {
+   252→    merged.runStatus = local.runStatus;
+   253→  }
+   254→  return merged;
+   255→}
+   256→
+   257→export function mergeServerMessagesIntoConversation(
+   258→  current: ChatMessage[],
+   259→  serverMessages: ChatMessage[],
+   260→): ChatMessage[] {
+   261→  const currentById = new Map(current.map((message) => [message.id, message]));
+   262→  const serverIds = new Set(serverMessages.map((message) => message.id));
+   263→  const merged = serverMessages.map((message) =>
+   264→    mergeServerMessageWithLocal(message, currentById.get(message.id)),
+   265→  );
+   266→  for (const message of current) {
+   267→    if (!serverIds.has(message.id)) merged.push(message);
+   268→  }
+   269→  return merged;
+   270→}
+   271→
+   272→interface Props {
+   273→  project: Project;
+   274→  routeFileName: string | null;
+   275→  /**
+   276→   * Routed conversation id. When set (the URL is
+   277→   * `/projects/:id/conversations/:cid[/...]`), the project view picks
+   278→   * this conversation as active instead of defaulting to `list[0]`.
+   279→   * Falls through to the default picker if the conversation does not
+   280→   * exist (e.g. the run was deleted between the route landing and the
+   281→   * conversation list loading). Issue #1505. Optional so existing
+   282→   * test harnesses that mount ProjectView with a stub props bag do
+   283→   * not have to be updated; production callers in `App.tsx` always
+   284→   * pass the value from `useRoute()`.
+   285→   */
+   286→  routeConversationId?: string | null;
+   287→  config: AppConfig;
+   288→  agents: AgentInfo[];
+   289→  // Mentionable functional skills — already filtered by config.disabledSkills
+   290→  // upstream, so this drives only the chat composer's @-picker scope. For
+   291→  // resolving an existing project's `skillId` (which can also point at a
+   292→  // design template after the skills/design-templates split) use
+   293→  // `designTemplates` as a fallback in composedSystemPrompt() and in the
+   294→  // skill-name / skill-mode lookups below.
+   295→  skills: SkillSummary[];
+   296→  // All known design templates (unfiltered). Required so projects created
+   297→  // from the Templates surface keep composing the template body in API
+   298→  // mode even when the user later disables the template in Settings.
+   299→  designTemplates: SkillSummary[];
+   300→  designSystems: DesignSystemSummary[];
+   301→  daemonLive: boolean;
+   302→  onModeChange: (mode: AppConfig['mode']) => void;
+   303→  onAgentChange: (id: string) => void;
+   304→  onAgentModelChange: (
+   305→    id: string,
+   306→    choice: { model?: string; reasoning?: string },
+   307→  ) => void;
+   308→  onRefreshAgents: () => void;
+   309→  onThemeChange?: (theme: AppConfig['theme']) => void;
+   310→  onOpenSettings: (section?: SettingsSection) => void;
+   311→  onOpenAmrSettings?: () => void;
+   312→  onOpenMcpSettings?: () => void;
+   313→  onBrowsePlugins?: () => void;
+   314→  onOpenConnectors?: () => void;
+   315→  // Pet wiring forwarded to the chat composer so users can adopt /
+   316→  // wake / tuck a pet without leaving the project view.
+   317→  onAdoptPetInline?: (petId: string) => void;
+   318→  onTogglePet?: () => void;
+   319→  onOpenPetSettings?: () => void;
+   320→  onBack: () => void;
+   321→  onClearPendingPrompt: () => void;
+   322→  onTouchProject: () => void;
+   323→  onProjectChange: (next: Project) => void;
+   324→  onProjectsRefresh: () => void;
+   325→  onChangeDefaultDesignSystem?: (designSystemId: string | null) => void;
+   326→  onDesignSystemsRefresh?: () => Promise<void> | void;
+   327→}
+   328→
+   329→interface QueuedChatSend {
+   330→  id: string;
+   331→  conversationId: string;
+   332→  prompt: string;
+   333→  attachments: ChatAttachment[];
+   334→  commentAttachments: ChatCommentAttachment[];
+   335→  meta?: ProjectChatSendMeta;
+   336→  createdAt: number;
+   337→}
+   338→
+   339→interface QueuedChatSendUpdate {
+   340→  prompt: string;
+   341→  attachments: ChatAttachment[];
+   342→  commentAttachments: ChatCommentAttachment[];
+   343→  meta?: ChatSendMeta;
+   344→}
+   345→
+   346→let liveArtifactEventSequence = 0;
+   347→const CHAT_PANEL_WIDTH_STORAGE_KEY = 'open-design.project.chatPanelWidth';
+   348→const DEFAULT_CHAT_PANEL_WIDTH = 460;
+   349→const MIN_CHAT_PANEL_WIDTH = 345;
+   350→const MAX_CHAT_PANEL_WIDTH = 720;
+   351→const COMMENT_INSPECTOR_PANEL_WIDTH = 320;
+   352→const MIN_WORKSPACE_PANEL_WIDTH = 400;
+   353→const SPLIT_RESIZE_HANDLE_WIDTH = 8;
+   354→const CHAT_PANEL_KEYBOARD_STEP = 16;
+   355→const DESIGN_SYSTEM_AUDIT_AUTO_REPAIR_ATTEMPTS = 2;
+   356→// Trailing-debounce window for the canonical (daemon + SQLite) tab-state write.
+   357→// Embedded-browser navigation bursts settle well within this; the local cache
+   358→// is written immediately so nothing is lost if the daemon write is coalesced.
+   359→const TAB_PERSIST_DEBOUNCE_MS = 400;
+   360→const MIN_NORMAL_SPLIT_WIDTH =
+   361→  MIN_CHAT_PANEL_WIDTH + SPLIT_RESIZE_HANDLE_WIDTH + MIN_WORKSPACE_PANEL_WIDTH;
+   362→type DesignSystemReviewEntry = NonNullable<ProjectMetadata['designSystemReview']>[string];
+   363→type DesignSystemReviewAgentTask = NonNullable<DesignSystemReviewEntry['agentTask']>;
+   364→interface DesignSystemReviewDetails {
+   365→  feedback?: string;
+   366→  files?: string[];
+   367→  agentTask?: DesignSystemReviewAgentTask;
+   368→}
+   369→
+   370→function workspacePanelMinWidthForSplit(splitWidth: number): number {
+   371→  if (!Number.isFinite(splitWidth) || splitWidth <= 0) return MIN_WORKSPACE_PANEL_WIDTH;
+   372→  return splitWidth < MIN_NORMAL_SPLIT_WIDTH ? 0 : MIN_WORKSPACE_PANEL_WIDTH;
+   373→}
+   374→
+   375→function maxChatPanelWidthForSplit(splitWidth: number): number {
+   376→  if (!Number.isFinite(splitWidth) || splitWidth <= 0) return MAX_CHAT_PANEL_WIDTH;
+   377→  const workspaceMinWidth = workspacePanelMinWidthForSplit(splitWidth);
+   378→  const viewportAwareMax = splitWidth - SPLIT_RESIZE_HANDLE_WIDTH - workspaceMinWidth;
+   379→  return Math.max(0, Math.min(MAX_CHAT_PANEL_WIDTH, Math.floor(viewportAwareMax)));
+   380→}
+   381→
+   382→function clampPreferredChatPanelWidth(width: number): number {
+   383→  return Math.min(MAX_CHAT_PANEL_WIDTH, Math.max(MIN_CHAT_PANEL_WIDTH, Math.round(width)));
+   384→}
+   385→
+   386→function clampChatPanelWidth(width: number, maxWidth = MAX_CHAT_PANEL_WIDTH): number {
+   387→  const effectiveMax = Math.max(0, Math.min(MAX_CHAT_PANEL_WIDTH, Math.floor(maxWidth)));
+   388→  const effectiveMin = Math.min(MIN_CHAT_PANEL_WIDTH, effectiveMax);
+   389→  return Math.min(effectiveMax, Math.max(effectiveMin, Math.round(width)));
+   390→}
+   391→
+   392→function designSystemFeedbackAttachments(
+   393→  projectFiles: ProjectFile[],
+   394→  sectionFiles: string[],
+   395→): ChatAttachment[] {
+   396→  const fileLookup = new Map(projectFiles.map((file) => [file.name, file]));
+   397→  return sectionFiles
+   398→    .map((name) => fileLookup.get(name))
+   399→    .filter((file): file is ProjectFile => Boolean(file))
+   400→    .slice(0, 8)
+   401→    .map((file) => ({
+   402→      path: file.name,
+   403→      name: file.name,
+   404→      kind: file.kind === 'image' ? 'image' : 'file',
+   405→      size: file.size,
+   406→    }));
+   407→}
+   408→
+   409→function chatAttachmentsFromPreviewCommentImages(
+   410→  images: PreviewCommentAttachment[] | undefined,
+   411→): ChatAttachment[] {
+   412→  if (!Array.isArray(images)) return [];
+   413→  const seen = new Set<string>();
+   414→  const out: ChatAttachment[] = [];
+   415→  for (const image of images) {
+   416→    const path = image.path.trim();
+   417→    if (!path || seen.has(path)) continue;
+   418→    seen.add(path);
+   419→    out.push({
+   420→      path,
+   421→      name: image.name.trim() || path.split('/').pop() || path,
+   422→      kind: 'image',
+   423→    });
+   424→  }
+   425→  return out;
+   426→}
+   427→
+   428→function mergeChatAttachments(...groups: ChatAttachment[][]): ChatAttachment[] {
+   429→  const seen = new Set<string>();
+   430→  const out: ChatAttachment[] = [];
+   431→  for (const group of groups) {
+   432→    for (const attachment of group) {
+   433→      const path = attachment.path.trim();
+   434→      if (!path || seen.has(path)) continue;
+   435→      seen.add(path);
+   436→      out.push({ ...attachment, path });
+   437→    }
+   438→  }
+   439→  return out;
+   440→}
+   441→
+   442→function historyWithWorkspaceContext(
+   443→  history: ChatMessage[],
+   444→  messageId: string,
+   445→  context: ChatSendMeta['context'] | undefined,
+   446→): ChatMessage[] {
+   447→  const items = context?.workspaceItems ?? [];
+   448→  if (items.length === 0) return history;
+   449→  const block = [
+   450→    '',
+   451→    '',
+   452→    '<active-workspace-context>',
+   453→    'Open Design selected the currently focused workspace tab as the default context for this turn.',
+   454→    ...items.map((item, index) => {
+   455→      const details = [
+   456→        item.path ? `path: ${item.path}` : null,
+   457→        item.absolutePath ? `absolute: ${item.absolutePath}` : null,
+   458→        item.url ? `url: ${item.url}` : null,
+   459→        item.title ? `title: ${item.title}` : null,
+   460→        item.tabId ? `tab: ${item.tabId}` : null,
+   461→      ].filter(Boolean).join(' | ');
+   462→      return `${index + 1}. ${item.kind}: ${item.label}${details ? ` | ${details}` : ''}`;
+   463→    }),
+   464→    '</active-workspace-context>',
+   465→  ].join('\n');
+   466→  return history.map((message) =>
+   467→    message.id === messageId && message.role === 'user'
+   468→      ? { ...message, content: `${message.content}${block}` }
+   469→      : message,
+   470→  );
+   471→}
+   472→
+   473→function commentTaskQuery(attachment: ChatCommentAttachment): string {
+   474→  return (attachment.comment ?? '').trim();
+   475→}
+   476→
+   477→function commentTaskContextAttachment(attachment: ChatCommentAttachment): ChatCommentAttachment {
+   478→  return {
+   479→    ...attachment,
+   480→    comment: '',
+   481→    commentContext: 'query',
+   482→  };
+   483→}
+   484→
+   485→function designSystemNeedsWorkPrompt(
+   486→  sectionTitle: string,
+   487→  feedback: string,
+   488→  sectionFiles: string[],
+   489→): string {
+   490→  const fileList =
+   491→    sectionFiles.length > 0
+   492→      ? sectionFiles.map((name) => `- @${name}`).join('\n')
+   493→      : '- No generated files are registered for this section yet.';
+   494→  return (
+   495→    `Needs work on the design system section "${sectionTitle}".\n\n` +
+   496→    `User feedback:\n${feedback}\n\n` +
+   497→    `Relevant section files:\n${fileList}\n\n` +
+   498→    'Revise the design-system project files directly. Keep DESIGN.md, tokens, previews, UI kit examples, and assets consistent with the feedback. ' +
+   499→    'After editing, summarize what changed and which files should be reviewed again.'
+   500→  );
+   501→}
+   502→
+   503→function readSavedChatPanelWidth(): number {
+   504→  if (typeof window === 'undefined') return DEFAULT_CHAT_PANEL_WIDTH;
+   505→  try {
+   506→    const raw = window.localStorage.getItem(CHAT_PANEL_WIDTH_STORAGE_KEY);
+   507→    const parsed = raw ? Number.parseInt(raw, 10) : Number.NaN;
+   508→    return Number.isFinite(parsed)
+   509→      ? clampPreferredChatPanelWidth(parsed)
+   510→      : DEFAULT_CHAT_PANEL_WIDTH;
+   511→  } catch {
+   512→    return DEFAULT_CHAT_PANEL_WIDTH;
+   513→  }
+   514→}
+   515→
+   516→function saveChatPanelWidth(width: number): void {
+   517→  if (typeof window === 'undefined') return;
+   518→  try {
+   519→    window.localStorage.setItem(
+   520→      CHAT_PANEL_WIDTH_STORAGE_KEY,
+   521→      String(clampPreferredChatPanelWidth(width)),
+   522→    );
+   523→  } catch {
+   524→    // localStorage can be unavailable in hardened browser contexts.
+   525→  }
+   526→}
+   527→
+   528→function autoSendFirstMessageKey(projectId: string): string {
+   529→  return `od:auto-send-first:${projectId}`;
+   530→}
+   531→
+   532→function autoSendAttachmentsKey(projectId: string): string {
+   533→  return `od:auto-send-attachments:${projectId}`;
+   534→}
+   535→
+   536→function designSystemAuditAutoRepairKey(projectId: string): string {
+   537→  return `od:design-system-audit-auto-repair:${projectId}`;
+   538→}
+   539→
+   540→function readAutoSendAttachments(projectId: string): ChatAttachment[] {
+   541→  if (typeof window === 'undefined') return [];
+   542→  try {
+   543→    const raw = window.sessionStorage.getItem(autoSendAttachmentsKey(projectId));
+   544→    if (!raw) return [];
+   545→    const parsed = JSON.parse(raw) as unknown;
+   546→    if (!Array.isArray(parsed)) return [];
+   547→    return parsed.filter(isStoredChatAttachment);
+   548→  } catch {
+   549→    return [];
+   550→  }
+   551→}
+   552→
+   553→function clearAutoSendSession(projectId: string): void {
+   554→  if (typeof window === 'undefined') return;
+   555→  try {
+   556→    window.sessionStorage.removeItem(autoSendFirstMessageKey(projectId));
+   557→    window.sessionStorage.removeItem(autoSendAttachmentsKey(projectId));
+   558→  } catch {
+   559→    /* ignore */
+   560→  }
+   561→}
+   562→
+   563→function markDesignSystemAuditAutoRepairEligible(projectId: string): void {
+   564→  if (typeof window === 'undefined') return;
+   565→  try {
+   566→    window.sessionStorage.setItem(
+   567→      designSystemAuditAutoRepairKey(projectId),
+   568→      String(DESIGN_SYSTEM_AUDIT_AUTO_REPAIR_ATTEMPTS),
+   569→    );
+   570→  } catch {
+   571→    /* ignore */
+   572→  }
+   573→}
+   574→
+   575→function consumeDesignSystemAuditAutoRepair(projectId: string): boolean {
+   576→  if (typeof window === 'undefined') return false;
+   577→  try {
+   578→    const key = designSystemAuditAutoRepairKey(projectId);
+   579→    const raw = window.sessionStorage.getItem(key);
+   580→    const attemptsRemaining = raw ? Number.parseInt(raw, 10) : 0;
+   581→    if (!Number.isFinite(attemptsRemaining) || attemptsRemaining <= 0) {
+   582→      window.sessionStorage.removeItem(key);
+   583→      return false;
+   584→    }
+   585→    const nextAttemptsRemaining = attemptsRemaining - 1;
+   586→    if (nextAttemptsRemaining > 0) {
+   587→      window.sessionStorage.setItem(key, String(nextAttemptsRemaining));
+   588→    } else {
+   589→      window.sessionStorage.removeItem(key);
+   590→    }
+   591→    return true;
+   592→  } catch {
+   593→    return false;
+   594→  }
+   595→}
+   596→
+   597→function clearDesignSystemAuditAutoRepair(projectId: string): void {
+   598→  if (typeof window === 'undefined') return;
+   599→  try {
+   600→    window.sessionStorage.removeItem(designSystemAuditAutoRepairKey(projectId));
+   601→  } catch {
+   602→    /* ignore */
+   603→  }
+   604→}
+   605→
+   606→function isDesignSystemWorkspaceMetadata(metadata: ProjectMetadata | undefined): boolean {
+   607→  return metadata?.importedFrom === 'design-system';
+   608→}
+   609→
+   610→function isStoredChatAttachment(value: unknown): value is ChatAttachment {
+   611→  if (value === null || typeof value !== 'object') return false;
+   612→  const record = value as Record<string, unknown>;
+   613→  return (
+   614→    typeof record.path === 'string' &&
+   615→    record.path.length > 0 &&
+   616→    typeof record.name === 'string' &&
+   617→    record.name.length > 0 &&
+   618→    (record.kind === 'image' || record.kind === 'file') &&
+   619→    (record.size === undefined || typeof record.size === 'number') &&
+   620→    (record.order === undefined || typeof record.order === 'number')
+   621→  );
+   622→}
+   623→
+   624→function workspaceContextItemEqual(
+   625→  a: WorkspaceContextItem | null,
+   626→  b: WorkspaceContextItem | null,
+   627→): boolean {
+   628→  if (a === b) return true;
+   629→  if (!a || !b) return false;
+   630→  return (
+   631→    a.id === b.id &&
+   632→    a.kind === b.kind &&
+   633→    a.label === b.label &&
+   634→    (a.tabId ?? '') === (b.tabId ?? '') &&
+   635→    (a.path ?? '') === (b.path ?? '') &&
+   636→    (a.absolutePath ?? '') === (b.absolutePath ?? '') &&
+   637→    (a.url ?? '') === (b.url ?? '') &&
+   638→    (a.title ?? '') === (b.title ?? '')
+   639→  );
+   640→}
+   641→
+   642→function workspaceContextItemsEqual(
+   643→  a: WorkspaceContextItem[],
+   644→  b: WorkspaceContextItem[],
+   645→): boolean {
+   646→  if (a === b) return true;
+   647→  if (a.length !== b.length) return false;
+   648→  return a.every((item, index) => workspaceContextItemEqual(item, b[index] ?? null));
+   649→}
+   650→
+   651→function appendLiveArtifactEventItem(
+   652→  prev: LiveArtifactEventItem[],
+   653→  event: LiveArtifactEventItem['event'],
+   654→): LiveArtifactEventItem[] {
+   655→  liveArtifactEventSequence += 1;
+   656→  const next = [...prev, { id: liveArtifactEventSequence, event }];
+   657→  return next.length > 50 ? next.slice(next.length - 50) : next;
+   658→}
+   659→
+   660→export function projectSplitClassName(workspaceFocused: boolean): string {
+   661→  return workspaceFocused ? 'split split-focus' : 'split';
+   662→}
+   663→
+   664→// React key for the on-screen question form. Deliberately does NOT include the
+   665→// form's parsed `id`: there is at most one (first) form per assistant message,
+   666→// so `${conversation}:${message}` is already a stable, unique identity for the
+   667→// occurrence. Folding the parsed id in would remount the panel mid-stream — the
+   668→// preview shows the `discovery` fallback until the body `id` streams in, and a
+   669→// form that emits answerable questions before its `id` would flip identity
+   670→// while the user is mid-answer, dropping their selections. A distinct later
+   671→// form lives in a different assistant message, so it still gets its own key
+   672→// (and replays the reveal) without relying on the id.
+   673→export function buildQuestionFormKey(
+   674→  conversationId: string | null,
+   675→  assistantMessageId: string | null,
+   676→  hasForm: boolean,
+   677→): string | null {
+   678→  return conversationId && assistantMessageId && hasForm
+   679→    ? `${conversationId}:${assistantMessageId}`
+   680→    : null;
+   681→}
+   682→
+   683→type ProjectSplitStyle = CSSProperties & {
+   684→  '--project-chat-panel-width': string;
+   685→  '--project-workspace-panel-track': string;
+   686→};
+   687→
+   688→export function projectSplitStyle(
+   689→  workspaceFocused: boolean,
+   690→  chatPanelWidth: number,
+   691→  workspacePanelTrack: string,
+   692→): ProjectSplitStyle | undefined {
+   693→  if (workspaceFocused) return undefined;
+   694→  return {
+   695→    '--project-chat-panel-width': `${chatPanelWidth}px`,
+   696→    '--project-workspace-panel-track': workspacePanelTrack,
+   697→    gridTemplateColumns: `${chatPanelWidth}px ${SPLIT_RESIZE_HANDLE_WIDTH}px ${workspacePanelTrack}`,
+   698→  };
+   699→}
+   700→
+   701→function applySplitChatPanelWidth(
+   702→  split: HTMLDivElement | null,
+   703→  width: number,
+   704→  workspacePanelTrack: string,
+   705→): void {
+   706→  if (!split) return;
+   707→  split.style.setProperty('--project-chat-panel-width', `${width}px`);
+   708→  split.style.gridTemplateColumns =
+   709→    `${width}px ${SPLIT_RESIZE_HANDLE_WIDTH}px ${workspacePanelTrack}`;
+   710→}
+   711→
+   712→function shouldFetchElevenLabsVoiceOptions(project: Project): boolean {
+   713→  const metadata = project.metadata;
+   714→  return metadata?.kind === 'audio'
+   715→    && metadata.audioKind === 'speech'
+   716→    && metadata.audioModel === 'elevenlabs-v3'
+   717→    && !metadata.voice;
+   718→}
+   719→
+   720→// The media model the user picked in the New Project → Media dialog, keyed by
+   721→// surface. For BYOK providers (AIHubMix) media is produced by the generate_*
+   722→// chat tools whose default model comes from the per-request byok*Model field —
+   723→// NOT the `od media generate` dispatcher — so without this seed the dialog pick
+   724→// is dropped and the conversation falls back to the Settings default. Returns
+   725→// undefined for non-media projects (and when the field is empty) so callers fall
+   726→// back to the Settings default exactly as before. The daemon re-validates the id
+   727→// against the active provider's registry, so a mismatched pick is safely ignored.
+   728→function projectMediaModelSeed(
+   729→  metadata: ProjectMetadata | null | undefined,
+   730→  surface: 'image' | 'video' | 'speech',
+   731→): string | undefined {
+   732→  if (!metadata) return undefined;
+   733→  if (surface === 'image' && metadata.kind === 'image') {
+   734→    return metadata.imageModel?.trim() || undefined;
+   735→  }
+   736→  if (surface === 'video' && metadata.kind === 'video') {
+   737→    return metadata.videoModel?.trim() || undefined;
+   738→  }
+   739→  if (surface === 'speech' && metadata.kind === 'audio' && metadata.audioKind === 'speech') {
+   740→    return metadata.audioModel?.trim() || undefined;
+   741→  }
+   742→  return undefined;
+   743→}
+   744→
+   745→function projectMediaVoiceSeed(
+   746→  metadata: ProjectMetadata | null | undefined,
+   747→): string | undefined {
+   748→  if (metadata?.kind === 'audio' && metadata.audioKind === 'speech') {
+   749→    return metadata.voice?.trim() || undefined;
+   750→  }
+   751→  return undefined;
+   752→}
+   753→
+   754→// Carry the creation-time model pick into the conversation ONLY when it belongs
+   755→// to the active BYOK provider. Guards against clobbering a user's Settings
+   756→// default with a model from a different provider — e.g. a SenseAudio user whose
+   757→// image project was created with the dialog's default `gpt-image-2` keeps their
+   758→// configured SenseAudio model instead of being forced to the registry default.
+   759→// AIHubMix's live (`aihubmix-` prefixed) ids resolve via mediaModelProviderId
+   760→// without waiting on the async catalogue, so the AIHubMix path still seeds.
+   761→function byokModelSeedForProtocol(
+   762→  metadata: ProjectMetadata | null | undefined,
+   763→  surface: 'image' | 'video' | 'speech',
+   764→  protocol: string | undefined,
+   765→): string | undefined {
+   766→  const picked = projectMediaModelSeed(metadata, surface);
+   767→  if (!picked) return undefined;
+   768→  return mediaModelProviderId(picked) === protocol ? picked : undefined;
+   769→}
+   770→
+   771→function projectEventToAgentEvent(evt: ProjectEvent): LiveArtifactEventItem['event'] | null {
+   772→  if (evt.type === 'file-changed') return null;
+   773→  if (evt.type === 'conversation-created') return null;
+   774→  if (evt.type === 'live_artifact') {
+   775→    return {
+   776→      kind: 'live_artifact',
+   777→      action: evt.action,
+   778→      projectId: evt.projectId,
+   779→      artifactId: evt.artifactId,
+   780→      title: evt.title,
+   781→      refreshStatus: evt.refreshStatus,
+   782→    };
+   783→  }
+   784→  return {
+   785→    kind: 'live_artifact_refresh',
+   786→    phase: evt.phase,
+   787→    projectId: evt.projectId,
+   788→    artifactId: evt.artifactId,
+   789→    refreshId: evt.refreshId,
+   790→    title: evt.title,
+   791→    refreshedSourceCount: evt.refreshedSourceCount,
+   792→    error: evt.error,
+   793→  };
+   794→}
+   795→
+   796→export function ProjectView({
+   797→  project,
+   798→  routeFileName,
+   799→  routeConversationId = null,
+   800→  config,
+   801→  agents,
+   802→  skills,
+   803→  designTemplates,
+   804→  designSystems,
+   805→  daemonLive,
+   806→  onModeChange,
+   807→  onAgentChange,
+   808→  onAgentModelChange,
+   809→  onRefreshAgents,
+   810→  onThemeChange,
+   811→  onOpenSettings,
+   812→  onOpenAmrSettings,
+   813→  onOpenMcpSettings,
+   814→  onBrowsePlugins,
+   815→  onOpenConnectors,
+   816→  onAdoptPetInline,
+   817→  onTogglePet,
+   818→  onOpenPetSettings,
+   819→  onBack,
+   820→  onClearPendingPrompt,
+   821→  onTouchProject,
+   822→  onProjectChange,
+   823→  onProjectsRefresh,
+   824→  onChangeDefaultDesignSystem,
+   825→  onDesignSystemsRefresh,
+   826→}: Props) {
+   827→  const { locale, t } = useI18n();
+   828→  const analytics = useAnalytics();
+   829→  const iframeKeepAlivePool = useIframeKeepAlivePool();
+   830→  const handleThemeChange = onThemeChange ?? (() => {});
+   831→  // P0 page_view page_name=chat_panel — fire once per project mount.
+   832→  // ProjectView outlives conversation switches (ChatPane is keyed by
+   833→  // activeConversationId so it remounts when the user switches chats,
+   834→  // but this component does not), so page_view stays a "chat-panel
+   835→  // entry" metric instead of becoming a "conversation switch" count.
+   836→  // Reviewer #2285 (mrcfps, 2026-05-20 04:08) flagged the previous
+   837→  // ChatComposer-level emit for skewing the funnel.
+   838→  const chatPanelPageViewFiredRef = useRef<string | null>(null);
+   839→  useEffect(() => {
+   840→    if (chatPanelPageViewFiredRef.current === project.id) return;
+   841→    chatPanelPageViewFiredRef.current = project.id;
+   842→    trackPageView(analytics.track, { page_name: 'chat_panel' });
+   843→    // Onboarding's 4th step ("生成进度页") fires here, not in
+   844→    // `DesignSystemDetailView`: the Generate path navigates
+   845→    // straight to the project's chat_panel, not to the design
+   846→    // system detail surface. If an onboarding session id is still
+   847→    // in sessionStorage we stamp the funnel's last row here and
+   848→    // clear so any later DS visit doesn't inherit the attribution.
+   849→    // E2E (2026-05-21) confirmed this is the only path users
+   850→    // actually take — observed: page_view chat_panel fires, but
+   851→    // page_view design_system_project never did because that
+   852→    // route isn't visited from the embedded onboarding generate.
+   853→    const onboardingSessionId = peekOnboardingSessionId();
+   854→    if (onboardingSessionId) {
+   855→      trackPageView(analytics.track, {
+   856→        page_name: 'onboarding',
+   857→        area: 'generation_progress',
+   858→        step_index: 'progress',
+   859→        step_name: 'generation',
+   860→        onboarding_session_id: onboardingSessionId,
+   861→      });
+   862→      clearOnboardingSessionId();
+   863→    }
+   864→  }, [analytics.track, project.id]);
+   865→  const [conversations, setConversations] = useState<Conversation[]>([]);
+   866→  const [activeConversationId, setActiveConversationId] = useState<string | null>(
+   867→    null,
+   868→  );
+   869→  const activeConversation = useMemo(
+   870→    () => conversations.find((conversation) => conversation.id === activeConversationId) ?? null,
+   871→    [conversations, activeConversationId],
+   872→  );
+   873→  const activeSessionMode = activeConversation?.sessionMode ?? 'design';
+   874→  const [messagesConversationId, setMessagesConversationId] = useState<string | null>(null);
+   875→  const [failedMessagesConversationId, setFailedMessagesConversationId] = useState<string | null>(null);
+   876→  const [conversationLoadError, setConversationLoadError] = useState<string | null>(null);
+   877→  const [messageLoadRetryNonce, setMessageLoadRetryNonce] = useState(0);
+   878→  const [messages, setMessages] = useState<ChatMessage[]>([]);
+   879→  const [forkingMessageId, setForkingMessageId] = useState<string | null>(null);
+   880→  const [activePluginActionPaths, setActivePluginActionPaths] = useState<Set<string>>(() => new Set());
+   881→  const [hiddenAssistantPluginActionPaths, setHiddenAssistantPluginActionPaths] = useState<Set<string>>(() => new Set());
+   882→  const [forceStreamingPluginMessageIds, setForceStreamingPluginMessageIds] = useState<Set<string>>(() => new Set());
+   883→  // Ephemeral, live-only accumulation of a tool call's streaming JSON input,
+   884→  // keyed by tool-use id (globally unique per run). Fed by `onToolInputDelta`
+   885→  // while the model is still emitting `input_json_delta`; dropped per-id once
+   886→  // the full `tool_use` lands and wiped when the run ends. Never persisted —
+   887→  // see daemon `daemonAgentPayloadToPersistedAgentEvent` (returns null).
+   888→  // `seq` records how many persisted events existed when the tool started
+   889→  // streaming, so the renderer can place the live card at the tool call's
+   890→  // position in the message (text before it = preamble, after it = hedging).
+   891→  const [liveToolInput, setLiveToolInput] = useState<Record<string, { name: string; text: string; seq: number }>>({});
+   892→  // True once the initial DB read for the active conversation has settled.
+   893→  // Auto-send gates on this so it can't fire before listMessages resolves and
+   894→  // race-clobber the freshly-pushed user + assistant placeholder. Without
+   895→  // this, the auto-send writes [user, assistant] into state, then the still
+   896→  // in-flight listMessages PUT response arrives, runs setMessages(list), and
+   897→  // wipes both — leaving the daemon's run with no client-side message to
+   898→  // attach the runId to.
+   899→  const [messagesInitialized, setMessagesInitialized] = useState(false);
+   900→  const [previewComments, setPreviewComments] = useState<PreviewComment[]>([]);
+   901→  // Mirror so the send-now interrupt path can read the current statuses
+   902→  // synchronously without re-creating its callback on every comment change.
+   903→  const previewCommentsRef = useRef<PreviewComment[]>([]);
+   904→  useEffect(() => {
+   905→    previewCommentsRef.current = previewComments;
+   906→  }, [previewComments]);
+   907→  const [attachedComments, setAttachedComments] = useState<PreviewComment[]>([]);
+   908→  const [streaming, setStreaming] = useState(false);
+   909→  const [streamingConversationId, setStreamingConversationId] = useState<string | null>(null);
+   910→  // Safety net: drop any live tool-input partials whose tool never produced a
+   911→  // full `tool_use` (run errored/canceled mid-call) once streaming settles.
+   912→  useEffect(() => {
+   913→    if (!streaming) setLiveToolInput((prev) => (Object.keys(prev).length ? {} : prev));
+   914→  }, [streaming]);
+   915→  const [error, setError] = useState<string | null>(null);
+   916→  const [audioVoiceOptionsError, setAudioVoiceOptionsError] = useState<string | null>(null);
+   917→  const [artifact, setArtifact] = useState<Artifact | null>(null);
+   918→  const [filesRefresh, setFilesRefresh] = useState(0);
+   919→  // True while a working-dir replace is reindexing the new folder. Surfaced
+   920→  // to the Design Files panel so the file list shows a loading state instead
+   921→  // of silently sitting on the old tree for the few seconds the scan takes.
+   922→  const [projectFiles, setProjectFiles] = useState<ProjectFile[]>([]);
+   923→  const projectFilesRef = useRef<ProjectFile[]>([]);
+   924→  const [liveArtifacts, setLiveArtifacts] = useState<LiveArtifactSummary[]>([]);
+   925→  const [liveArtifactEvents, setLiveArtifactEvents] = useState<LiveArtifactEventItem[]>([]);
+   926→  const [workspaceFocused, setWorkspaceFocused] = useState(false);
+   927→  const [commentInspectorActive, setCommentInspectorActive] = useState(false);
+   928→  const commentInspectorPortalId = useId();
+   929→  const leftInspectorActive = commentInspectorActive;
+   930→  // Per-session override for the BYOK chat's generate_image tool. Seeded once
+   931→  // from the New Project → Media model pick (project.metadata.imageModel) — but
+   932→  // only when that pick belongs to the active BYOK provider (see
+   933→  // byokModelSeedForProtocol) — falling back to the Settings default
+   934→  // (config.byokImageModel) otherwise. Subsequent selections live only in this
+   935→  // component's state — page refresh / project switch resets to this seed.
+   936→  // Persistent defaults live in Settings → BYOK → Image generation model.
+   937→  const [byokImageModelOverride, setByokImageModelOverride] = useState<string>(
+   938→    () => byokModelSeedForProtocol(project.metadata, 'image', config.apiProtocol) ?? config.byokImageModel ?? '',
+   939→  );
+   940→  // Same per-session override for the BYOK chat's generate_video tool, seeded
+   941→  // from the project's videoModel pick (provider-gated), then Settings.
+   942→  const [byokVideoModelOverride, setByokVideoModelOverride] = useState<string>(
+   943→    () => byokModelSeedForProtocol(project.metadata, 'video', config.apiProtocol) ?? config.byokVideoModel ?? '',
+   944→  );
+   945→  // Same per-session overrides for the BYOK chat's generate_speech tool (model +
+   946→  // voice), seeded from the project's speech pick (provider-gated), then Settings.
+   947→  const [byokSpeechModelOverride, setByokSpeechModelOverride] = useState<string>(
+   948→    () => byokModelSeedForProtocol(project.metadata, 'speech', config.apiProtocol) ?? config.byokSpeechModel ?? '',
+   949→  );
+   950→  // Voice only carries when the speech model itself is carried (same provider),
+   951→  // so a cross-provider voice id never leaks into the request.
+   952→  const [byokSpeechVoiceOverride, setByokSpeechVoiceOverride] = useState<string>(
+   953→    () => (byokModelSeedForProtocol(project.metadata, 'speech', config.apiProtocol)
+   954→      ? projectMediaVoiceSeed(project.metadata)
+   955→      : undefined) ?? config.byokSpeechVoice ?? '',
+   956→  );
+   957→  // Live model option lists (same hooks the composer/Settings pickers use) so
+   958→  // the chat "default" (no explicit pick) resolves to the FIRST catalogue model
+   959→  // shown in the dropdown — not a hardcoded id. The daemon keeps its own
+   960→  // fallback for when the catalogue hasn't loaded.
+   961→  const byokImageModelOptionsPV = useByokImageModelOptions(config.apiProtocol);
+   962→  const byokVideoModelOptionsPV = useByokVideoModelOptions(config.apiProtocol);
+   963→  const byokSpeechModelOptionsPV = useByokSpeechModelOptions(config.apiProtocol);
+   964→  // PR #974 round 7 (mrcfps @ useDesignMdState.ts:131): counter that
+   965→  // bumps on file-changed SSE events, live_artifact* events, and the
+   966→  // chat streaming-completion edge so the staleness chip stays in sync
+   967→  // with the underlying mtimes / conversation updatedAt as the user
+   968→  // keeps working post-finalize. The hook treats it as a dep and
+   969→  // recomputes whenever it changes.
+   970→  const [designMdRefreshKey, setDesignMdRefreshKey] = useState(0);
+   971→  // ----- Continue in CLI / Finalize design package wiring (#451) -----
+   972→  // The toast surface is shared between Finalize errors and the
+   973→  // success/fallback toasts emitted from handleContinueInCli.
+   974→  const projectDetail = useProjectDetail(project.id);
+   975→  const designMdState = useDesignMdState(project.id, designMdRefreshKey);
+   976→  const finalize = useFinalizeProject(project.id);
+   977→  const terminalLauncher = useTerminalLaunch();
+   978→  const [projectActionsToast, setProjectActionsToast] = useState<{
+   979→    message: string;
+   980→    details: string | null;
+   981→    code?: string | null;
+   982→  } | null>(null);
+   983→  const [chatSeed, setChatSeed] = useState<{ id: string; value: string } | null>(null);
+   984→  const [autoAuditRepairSeed, setAutoAuditRepairSeed] =
+   985→    useState<{ id: string; value: string } | null>(null);
+   986→  const [chatPanelWidth, setChatPanelWidth] = useState(readSavedChatPanelWidth);
+   987→  const [chatPanelMaxWidth, setChatPanelMaxWidth] = useState(MAX_CHAT_PANEL_WIDTH);
+   988→  const [workspacePanelMinWidth, setWorkspacePanelMinWidth] = useState(MIN_WORKSPACE_PANEL_WIDTH);
+   989→  const [resizingChatPanel, setResizingChatPanel] = useState(false);
+   990→  const splitRef = useRef<HTMLDivElement | null>(null);
+   991→  const chatPanelWidthRef = useRef(chatPanelWidth);
+   992→  const preferredChatPanelWidthRef = useRef(chatPanelWidth);
+   993→  const resizeStartPreferredWidthRef = useRef(chatPanelWidth);
+   994→  const chatPanelMaxWidthRef = useRef(chatPanelMaxWidth);
+   995→  const resizeStateRef = useRef<{
+   996→    startClientX: number;
+   997→    startWidth: number;
+   998→    isRtl: boolean;
+   999→    hasMoved: boolean;
+  1000→  } | null>(null);
+  1001→  const pointerCleanupRef = useRef<(() => void) | null>(null);
+  1002→  const pointerFrameRef = useRef<number | null>(null);
+  1003→  const pendingPointerClientXRef = useRef<number | null>(null);
+  1004→  // The persisted set of open tabs + active tab. Persisted via PUT on every
+  1005→  // change; loaded once when the project mounts.
+  1006→  const [openTabsState, setOpenTabsState] = useState<OpenTabsState>({
+  1007→    tabs: [],
+  1008→    active: null,
+  1009→  });
+  1010→  // Artifact context for the header actions (settings gear, handoff) that live
+  1011→  // in this workspace's header alongside FileViewer's present/share/download.
+  1012→  // Mirrors the artifact_id / artifact_kind that FileViewer attaches, derived
+  1013→  // from the currently-active file tab, so all artifact_header analytics carry
+  1014→  // the same dimensions. Undefined on non-file tabs (e.g. the file list).
+  1015→  const headerArtifact = useMemo<{
+  1016→    artifact_id?: string;
+  1017→    artifact_kind?: TrackingArtifactKind;
+  1018→  }>(() => {
+  1019→    const activeName = openTabsState.active;
+  1020→    const file = activeName
+  1021→      ? projectFiles.find((entry) => entry.name === activeName) ?? null
+  1022→      : null;
+  1023→    if (!file) return {};
+  1024→    return {
+  1025→      artifact_id: anonymizeArtifactId({ projectId: project.id, fileName: file.name }),
+  1026→      artifact_kind: artifactKindToTracking({ fileKind: file.kind ?? null }),
+  1027→    };
+  1028→  }, [openTabsState.active, projectFiles, project.id]);
+  1029→  const routeFileNameRef = useRef(routeFileName);
+  1030→  routeFileNameRef.current = routeFileName;
+  1031→  const [activeWorkspaceContext, setActiveWorkspaceContext] =
+  1032→    useState<WorkspaceContextItem | null>(null);
+  1033→  const [workspaceContexts, setWorkspaceContexts] = useState<WorkspaceContextItem[]>([]);
+  1034→  const tabsLoadedRef = useRef(false);
+  1035→  const tabsHydratedFromSavedStateRef = useRef(false);
+  1036→  const hasAppliedInitialPrimaryOpenRef = useRef(false);
+  1037→  // Routed to FileWorkspace — bumped whenever the user clicks "open" on a
+  1038→  // tool card, an attachment chip, or a produced-file chip in chat. We
+  1039→  // include a nonce so re-clicking the same name after the user closed the
+  1040→  // tab still focuses it.
+  1041→  const [openRequest, setOpenRequest] = useState<{ name: string; nonce: number } | null>(null);
+  1042→  // Like `openRequest`, but additionally asks the preview workspace to open the
+  1043→  // file's Share/Export menu. Drives the "Share" next-step action: it reuses the
+  1044→  // existing export/deploy surface rather than introducing a new share backend.
+  1045→  const [shareRequest, setShareRequest] = useState<{ name: string; nonce: number } | null>(null);
+  1046→  // Parallel to shareRequest, but opens the workspace's Download/Export menu.
+  1047→  const [downloadRequest, setDownloadRequest] = useState<{ name: string; nonce: number } | null>(null);
+  1048→  // When a queued chat send starts processing, ask the workspace to flip the
+  1049→  // deck preview to the slide its marked element lives on, so the user watches
+  1050→  // the edit land in context instead of staying parked on slide 1. Mirrors the
+  1051→  // `shareRequest` nonce signal: FileWorkspace matches `name` against the open
+  1052→  // file and FileViewer consumes each nonce once.
+  1053→  const [slideNavRequest, setSlideNavRequest] = useState<
+  1054→    { name: string; slideIndex: number; nonce: number } | null
+  1055→  >(null);
+  1056→  const abortRef = useRef<AbortController | null>(null);
+  1057→  const cancelRef = useRef<AbortController | null>(null);
+  1058→  // Runs explicitly superseded by a "send now" interrupt. Their abort
+  1059→  // controller is recorded here synchronously — before handleStop() clears the
+  1060→  // active refs — so the run's late terminal callbacks (which the daemon still
+  1061→  // delivers for a canceled run) can be recognized as stale and skip every
+  1062→  // current-run side effect, independent of abortRef churn. A WeakSet so a
+  1063→  // finished run's controller is collected once nothing else references it.
+  1064→  const supersededRunsRef = useRef<WeakSet<AbortController>>(new WeakSet());
+  1065→  const streamingConversationIdRef = useRef<string | null>(null);
+  1066→  const [queuedChatSends, setQueuedChatSends] = useState<QueuedChatSend[]>([]);
+  1067→  const queuedChatSendsRef = useRef<QueuedChatSend[]>([]);
+  1068→  const sendTextBufferRef = useRef<BufferedTextUpdates | null>(null);
+  1069→  const reattachTextBuffersRef = useRef<Set<BufferedTextUpdates>>(new Set());
+  1070→  const reattachControllersRef = useRef<Map<string, AbortController>>(new Map());
+  1071→  const reattachCancelControllersRef = useRef<Map<string, AbortController>>(new Map());
+  1072→  const completedReattachRunsRef = useRef<Set<string>>(new Set());
+  1073→  const startingQueuedChatSendIdRef = useRef<string | null>(null);
+  1074→  const [queuedAutoStartTick, setQueuedAutoStartTick] = useState(0);
+  1075→  const skillCache = useRef<Map<string, string>>(new Map());
+  1076→  const designCache = useRef<Map<string, string>>(new Map());
+  1077→  const templateCache = useRef<Map<string, ProjectTemplate>>(new Map());
+  1078→  // We auto-save the most recent artifact to the project folder. Track the
+  1079→  // last name we persisted so re-renders during streaming don't spawn
+  1080→  // duplicate writes.
+  1081→  const savedArtifactRef = useRef<string | null>(null);
+  1082→  // Pending Write tool invocations: tool_use_id -> destination basename.
+  1083→  // When the matching tool_result lands we refresh the file list and open
+  1084→  // the file as a tab once. Keying off the tool_use_id (rather than
+  1085→  // diffing the file list at end-of-turn) lets us auto-open the moment
+  1086→  // the agent's Write actually completes, without the previous synthetic
+  1087→  // "live" tab that was causing flicker against manual opens.
+  1088→  const pendingWritesRef = useRef<Map<string, string>>(new Map());
+  1089→  // Track which conversation the current messages belong to, so we can
+  1090→  // correctly gate new-conversation creation even during async loads.
+  1091→  const messagesConversationIdRef = useRef<string | null>(null);
+  1092→  const creatingConversationRef = useRef(false);
+  1093→  // Last conversation id this view pushed into the URL. Lets the
+  1094→  // route -> active-conversation sync tell a genuine external navigation
+  1095→  // apart from the URL merely lagging a local conversation switch.
+  1096→  const lastSyncedConversationIdRef = useRef<string | null>(null);
+  1097→  // Live mirror of the currently-viewed project id. Used to bail out of
+  1098→  // the conversation-created async refresh (#1361) if the user switches
+  1099→  // projects while the refetch is in flight — the existing project-load
+  1100→  // effects use the same kind of cancellation guard.
+  1101→  const projectIdRef = useRef(project.id);
+  1102→  useEffect(() => {
+  1103→    projectIdRef.current = project.id;
+  1104→  }, [project.id]);
+  1105→  useEffect(() => {
+  1106→    setChatSeed(null);
+  1107→    setAutoAuditRepairSeed(null);
+  1108→    const restored = loadQueuedChatSends(project.id);
+  1109→    queuedChatSendsRef.current = restored;
+  1110→    setQueuedChatSends(restored);
+  1111→  }, [project.id]);
+  1112→  // Monotonic token bumped on every `conversation-created` refresh dispatch.
+  1113→  // Two rapid events (e.g. concurrent routine runs against the same reused
+  1114→  // project, #1502) can start overlapping `listConversations` calls; if the
+  1115→  // later request resolves first with N+1 conversations and the earlier
+  1116→  // request resolves afterwards with only N, an unconditional
+  1117→  // `setConversations(list)` would drop the newest conversation. Each
+  1118→  // dispatch captures the token at start; only the dispatch whose token
+  1119→  // still equals `conversationsRefreshTokenRef.current` at await-return is
+  1120→  // allowed to apply its result.
+  1121→  const conversationsRefreshTokenRef = useRef(0);
+  1122→  const [creatingConversation, setCreatingConversation] = useState(false);
+  1123→  const currentConversationHasActiveRun = useMemo(
+  1124→    () => messages.some((m) => m.role === 'assistant' && isActiveRunStatus(m.runStatus)),
+  1125→    [messages],
+  1126→  );
+  1127→  const currentConversationLoading = Boolean(
+  1128→    activeConversationId
+  1129→      && messagesConversationId !== activeConversationId
+  1130→      && failedMessagesConversationId !== activeConversationId,
+  1131→  );
+  1132→  const currentConversationStreaming = streaming && streamingConversationId === activeConversationId;
+  1133→  const currentConversationBusy = currentConversationLoading
+  1134→    || currentConversationStreaming
+  1135→    || currentConversationHasActiveRun;
+  1136→  const currentConversationAwaitingActiveRunAttach =
+  1137→    currentConversationHasActiveRun && !currentConversationStreaming;
+  1138→  const currentConversationSendDisabled = currentConversationLoading
+  1139→    || failedMessagesConversationId === activeConversationId
+  1140→    || currentConversationAwaitingActiveRunAttach;
+  1141→  const currentConversationActionDisabled = currentConversationBusy || currentConversationSendDisabled;
+  1142→  const currentConversationQueueDisabled = currentConversationLoading
+  1143→    || failedMessagesConversationId === activeConversationId;
+  1144→
+  1145→  // The discovery question form lives in the right-hand Questions tab. We
+  1146→  // derive it from the latest assistant message: if that message embeds a
+  1147→  // <question-form> block, the panel renders it. The form is interactive
+  1148→  // only while it's the most recent turn and the user hasn't answered yet
+  1149→  // (an answer arrives as a following "[form answers …]" user message).
+  1150→  const lastAssistantIndex = useMemo(() => {
+  1151→    for (let i = messages.length - 1; i >= 0; i--) {
+  1152→      if (messages[i]?.role === 'assistant') return i;
+  1153→    }
+  1154→    return -1;
+  1155→  }, [messages]);
+  1156→  const lastAssistantContent =
+  1157→    lastAssistantIndex >= 0 ? messages[lastAssistantIndex]?.content ?? '' : '';
+  1158→  const lastAssistantMessageId =
+  1159→    lastAssistantIndex >= 0 ? messages[lastAssistantIndex]?.id ?? null : null;
+  1160→  const questionForm: QuestionForm | null = useMemo(
+  1161→    () => findFirstQuestionForm(lastAssistantContent)?.form ?? null,
+  1162→    [lastAssistantContent],
+  1163→  );
+  1164→  const questionFormSubmittedAnswers = useMemo(() => {
+  1165→    if (!questionForm) return undefined;
+  1166→    for (let i = lastAssistantIndex + 1; i < messages.length; i++) {
+  1167→      const m = messages[i];
+  1168→      if (m?.role !== 'user') continue;
+  1169→      const parsed = parseSubmittedAnswers(questionForm, m.content ?? '');
+  1170→      if (parsed) return parsed;
+  1171→    }
+  1172→    return undefined;
+  1173→  }, [questionForm, lastAssistantIndex, messages]);
+  1174→  const questionsGenerating =
+  1175→    currentConversationStreaming && hasUnterminatedQuestionForm(lastAssistantContent);
+  1176→  // While the form is still streaming, parse it tolerantly so the Questions tab
+  1177→  // can show a frame (title) immediately and fill questions in as they arrive.
+  1178→  const questionFormPreview = useMemo(
+  1179→    () => (questionsGenerating ? parsePartialQuestionForm(lastAssistantContent) : null),
+  1180→    [questionsGenerating, lastAssistantContent],
+  1181→  );
+  1182→  // The active (latest, unanswered) form stays editable the whole time it's on
+  1183→  // screen — while it streams in AND while the turn is still busy — so it never
+  1184→  // flickers between the locked (grey) and interactive (accent) styles.
+  1185→  // Submission is gated separately by the panel via `submitDisabled`/generating.
+  1186→  const questionFormActive =
+  1187→    (!!questionForm || questionsGenerating) && questionFormSubmittedAnswers === undefined;
+  1188→  // Mirror `questionFormActive`'s unanswered gate: once the user answers, the
+  1189→  // Questions tab closes, so the auto-focus nonce must not treat an answered
+  1190→  // form as a freshly appeared one.
+  1191→  const hasQuestions =
+  1192→    Boolean(questionForm || questionsGenerating) && questionFormSubmittedAnswers === undefined;
+  1193→  // Stable identity for the current form occurrence, used to remember that its
+  1194→  // one-by-one reveal already played. Keyed on the conversation + the hosting
+  1195→  // assistant message id (not the message index, and NOT the parsed form id —
+  1196→  // see buildQuestionFormKey). The assistant message id is allocated once and
+  1197→  // kept in place across the streaming→persisted swap (same `assistantId`
+  1198→  // throughout), so it survives the brief unmount/re-focus of the Questions tab
+  1199→  // without replaying the animation, yet differs for every distinct form
+  1200→  // occurrence (each lives in its own assistant message).
+  1201→  const questionFormKey = useMemo(
+  1202→    () =>
+  1203→      buildQuestionFormKey(
+  1204→        activeConversationId,
+  1205→        lastAssistantMessageId,
+  1206→        Boolean(questionForm ?? questionFormPreview),
+  1207→      ),
+  1208→    [activeConversationId, lastAssistantMessageId, questionForm, questionFormPreview],
+  1209→  );
+  1210→
+  1211→  // Release #3661: let a past question form be manually re-opened in the
+  1212→  // Questions panel. Layered on top of main's stable questionFormKey (#3644) —
+  1213→  // the `displayed*` values fall back to the live form when nothing is manually
+  1214→  // pinned, so both fixes coexist.
+  1215→  const [manualQuestionFormRequest, setManualQuestionFormRequest] =
+  1216→    useState<QuestionFormOpenRequest | null>(null);
+  1217→  useEffect(() => {
+  1218→    setManualQuestionFormRequest(null);
+  1219→  }, [project.id, activeConversationId]);
+  1220→  useEffect(() => {
+  1221→    if (hasQuestions && questionFormKey) setManualQuestionFormRequest(null);
+  1222→  }, [hasQuestions, questionFormKey]);
+  1223→  const displayedQuestionForm = manualQuestionFormRequest?.form ?? questionForm;
+  1224→  const displayedQuestionFormPreview = manualQuestionFormRequest ? null : questionFormPreview;
+  1225→  const displayedQuestionFormSubmittedAnswers =
+  1226→    manualQuestionFormRequest?.submittedAnswers ?? questionFormSubmittedAnswers;
+  1227→  const displayedQuestionFormActive = manualQuestionFormRequest ? false : questionFormActive;
+  1228→  const displayedQuestionsGenerating = manualQuestionFormRequest ? false : questionsGenerating;
+  1229→  const displayedQuestionFormKey = manualQuestionFormRequest
+  1230→    ? `${activeConversationId ?? 'conversation'}:${manualQuestionFormRequest.messageId}:${manualQuestionFormRequest.form.id}:manual`
+  1231→    : questionFormKey;
+  1232→
+  1233→  // Auto-switch the workspace to the Questions tab when a new discovery form
+  1234→  // first appears, and let the chat banner re-focus it on click. The nonce
+  1235→  // bump is what FileWorkspace listens to.
+  1236→  const [questionsFocusNonce, setQuestionsFocusNonce] = useState(0);
+  1237→  const prevHasQuestionsRef = useRef(false);
+  1238→  useEffect(() => {
+  1239→    if (hasQuestions && !prevHasQuestionsRef.current) {
+  1240→      setQuestionsFocusNonce((n) => n + 1);
+  1241→    }
+  1242→    prevHasQuestionsRef.current = hasQuestions;
+  1243→  }, [hasQuestions]);
+  1244→  const focusQuestionsRequest = useMemo(
+  1245→    () => (questionsFocusNonce > 0 ? { nonce: questionsFocusNonce } : null),
+  1246→    [questionsFocusNonce],
+  1247→  );
+  1248→  const submittedAnswersForQuestionFormRequest = useCallback((request: QuestionFormOpenRequest) => {
+  1249→    const assistantIndex = messages.findIndex((m) => m.id === request.messageId);
+  1250→    if (assistantIndex < 0) return null;
+  1251→    for (let i = assistantIndex + 1; i < messages.length; i++) {
+  1252→      const m = messages[i];
+  1253→      if (!m) continue;
+  1254→      if (m.role === 'assistant') break;
+  1255→      if (m.role !== 'user') continue;
+  1256→      const parsed = parseSubmittedAnswers(request.form, m.content ?? '');
+  1257→      if (parsed) return parsed;
+  1258→    }
+  1259→    return null;
+  1260→  }, [messages]);
+  1261→  const openQuestionsTab = useCallback((request?: QuestionFormOpenRequest) => {
+  1262→    if (request) {
+  1263→      const opensCurrentLiveForm =
+  1264→        request.messageId === lastAssistantMessageId
+  1265→        && questionForm?.id === request.form.id
+  1266→        && questionFormSubmittedAnswers === undefined;
+  1267→      if (opensCurrentLiveForm) {
+  1268→        setManualQuestionFormRequest(null);
+  1269→      } else {
+  1270→        setManualQuestionFormRequest({
+  1271→          ...request,
+  1272→          submittedAnswers:
+  1273→            request.submittedAnswers ?? submittedAnswersForQuestionFormRequest(request) ?? undefined,
+  1274→        });
+  1275→      }
+  1276→    }
+  1277→    setQuestionsFocusNonce((n) => n + 1);
+  1278→  }, [
+  1279→    lastAssistantMessageId,
+  1280→    questionForm,
+  1281→    questionFormSubmittedAnswers,
+  1282→    submittedAnswersForQuestionFormRequest,
+  1283→  ]);
+  1284→
+  1285→  const currentConversationQueuedItems = activeConversationId
+  1286→    ? queuedChatSends
+  1287→        .filter((item) => item.conversationId === activeConversationId)
+  1288→        .map((item) => {
+  1289→          const queuedItem = {
+  1290→            id: item.id,
+  1291→            prompt: item.prompt,
+  1292→            attachments: item.attachments,
+  1293→            commentAttachments: item.commentAttachments,
+  1294→          };
+  1295→          if (item.meta === undefined) return queuedItem;
+  1296→          return { ...queuedItem, meta: item.meta };
+  1297→        })
+  1298→    : [];
+  1299→  const newConversationDisabled = creatingConversation;
+  1300→  const activeCompletionNotificationRunsRef = useRef<Set<string>>(new Set());
+  1301→  const completedNotificationRunsRef = useRef<Set<string>>(new Set());
+  1302→
+  1303→  // Load conversations on project switch. If none exist (older projects
+  1304→  // pre-conversations, or a freshly created one whose default seed got
+  1305→  // dropped), create one on the fly.
+  1306→  useEffect(() => {
+  1307→    let cancelled = false;
+  1308→    setConversations([]);
+  1309→    setActiveConversationId(null);
+  1310→    setMessagesConversationId(null);
+  1311→    setFailedMessagesConversationId(null);
+  1312→    setMessageLoadRetryNonce(0);
+  1313→    setConversationLoadError(null);
+  1314→    setMessages([]);
+  1315→    setPreviewComments([]);
+  1316→    setAttachedComments([]);
+  1317→    setStreaming(false);
+  1318→    streamingConversationIdRef.current = null;
+  1319→    setStreamingConversationId(null);
+  1320→    setError(null);
+  1321→    setAudioVoiceOptionsError(null);
+  1322→    setArtifact(null);
+  1323→    savedArtifactRef.current = null;
+  1324→    pendingWritesRef.current.clear();
+  1325→    (async () => {
+  1326→      try {
+  1327→        const list = await listConversations(project.id);
+  1328→        if (cancelled) return;
+  1329→        if (list.length === 0) {
+  1330→          const fresh = await createConversation(project.id);
+  1331→          if (cancelled) return;
+  1332→          if (fresh) {
+  1333→            setConversations([fresh]);
+  1334→            setActiveConversationId(fresh.id);
+  1335→          } else {
+  1336→            throw new Error('Could not create a conversation for this project.');
+  1337→          }
+  1338→        } else {
+  1339→          setConversations(list);
+  1340→          // Issue #1505: when the URL deep-links to a specific
+  1341→          // conversation, prefer that one. Falls through to list[0]
+  1342→          // when the routed id is null or no longer present (the
+  1343→          // routine row may have been deleted between the route
+  1344→          // landing and the conversation list loading).
+  1345→          const routedMatch = routeConversationId
+  1346→            ? list.find((c) => c.id === routeConversationId) ?? null
+  1347→            : null;
+  1348→          setActiveConversationId(routedMatch ? routedMatch.id : list[0]!.id);
+  1349→        }
+  1350→      } catch (err) {
+  1351→        if (cancelled) return;
+  1352→        const message = err instanceof Error ? err.message : 'Could not load conversations for this project.';
+  1353→        setConversations([]);
+  1354→        setActiveConversationId(null);
+  1355→        setConversationLoadError(message);
+  1356→        setError(message);
+  1357→      }
+  1358→    })();
+  1359→    return () => {
+  1360→      cancelled = true;
+  1361→    };
+  1362→  }, [project.id]);
+  1363→
+  1364→  // Issue #1505: when the URL changes the routed conversation id while
+  1365→  // we are already inside the project (e.g. the user clicks "Open
+  1366→  // project" on a different routine history row in the same project),
+  1367→  // switch the active conversation without re-fetching the list.
+  1368→  // Guards: only acts when the routed id is non-null AND present in
+  1369→  // the already-loaded list, and only when it differs from the current
+  1370→  // active id. Falls through to a no-op for stale / missing routes so
+  1371→  // the default picker above keeps its result.
+  1372→  useEffect(() => {
+  1373→    if (!routeConversationId) {
+  1374→      lastSeenRouteConversationIdRef.current = null;
+  1375→      return;
+  1376→    }
+  1377→    if (conversations.length === 0) return;
+  1378→    if (routeConversationId === activeConversationId) return;
+  1379→    // When the route still points at the conversation this view last
+  1380→    // pushed to the URL, the mismatch means a local switch (new
+  1381→    // conversation, history pick) moved activeConversationId ahead and
+  1382→    // the URL sync below has not caught up yet. Following the stale
+  1383→    // route here would fight that sync and remount ChatPane in a loop,
+  1384→    // so only react to a genuinely external navigation.
+  1385→    if (routeConversationId === lastSyncedConversationIdRef.current) return;
+  1386→    if (lastSeenRouteConversationIdRef.current === routeConversationId) return;
+  1387→    lastSeenRouteConversationIdRef.current = routeConversationId;
+  1388→    const match = conversations.find((c) => c.id === routeConversationId);
+  1389→    if (!match) return;
+  1390→    setActiveConversationId(routeConversationId);
+  1391→  }, [routeConversationId, conversations, activeConversationId]);
+  1392→
+  1393→  useEffect(() => {
+  1394→    setWorkspaceFocused(false);
+  1395→  }, [project.id]);
+  1396→
+  1397→  // Load messages whenever the active conversation changes. This happens
+  1398→  // on project mount (after conversations load) and on user-triggered
+  1399→  // conversation switches.
+  1400→  useEffect(() => {
+  1401→    if (!activeConversationId) {
+  1402→      setMessages([]);
+  1403→      setMessagesInitialized(false);
+  1404→      setPreviewComments([]);
+  1405→      setAttachedComments([]);
+  1406→      setMessagesConversationId(null);
+  1407→      setFailedMessagesConversationId(null);
+  1408→      messagesConversationIdRef.current = null;
+  1409→      setStreaming(false);
+  1410→      streamingConversationIdRef.current = null;
+  1411→      setStreamingConversationId(null);
+  1412→      return;
+  1413→    }
+  1414→    // Reset the initialized flag so auto-send waits for the new
+  1415→    // conversation's DB read to settle before checking messages.length.
+  1416→    setMessagesInitialized(false);
+  1417→    let cancelled = false;
+  1418→    setMessages([]);
+  1419→    setPreviewComments([]);
+  1420→    setAttachedComments([]);
+  1421→    setArtifact(null);
+  1422→    setMessagesConversationId(null);
+  1423→    setFailedMessagesConversationId(null);
+  1424→    setStreaming(false);
+  1425→    streamingConversationIdRef.current = null;
+  1426→    setStreamingConversationId(null);
+  1427→    savedArtifactRef.current = null;
+  1428→    pendingWritesRef.current.clear();
+  1429→    if (messagesConversationIdRef.current !== activeConversationId) {
+  1430→      messagesConversationIdRef.current = null;
+  1431→    }
+  1432→    (async () => {
+  1433→      try {
+  1434→        const [list, comments] = await Promise.all([
+  1435→          listMessages(project.id, activeConversationId),
+  1436→          fetchPreviewComments(project.id, activeConversationId),
+  1437→        ]);
+  1438→        if (cancelled) return;
+  1439→        setMessages(list);
+  1440→        setMessagesInitialized(true);
+  1441→        setPreviewComments(comments);
+  1442→        setAttachedComments([]);
+  1443→        setArtifact(null);
+  1444→        setError(null);
+  1445→        savedArtifactRef.current = null;
+  1446→        pendingWritesRef.current.clear();
+  1447→        messagesConversationIdRef.current = activeConversationId;
+  1448→        setMessagesConversationId(activeConversationId);
+  1449→        setFailedMessagesConversationId(null);
+  1450→      } catch (err) {
+  1451→        if (cancelled) return;
+  1452→        const message = err instanceof Error ? err.message : 'Could not load messages for this conversation.';
+  1453→        setMessages([]);
+  1454→        setPreviewComments([]);
+  1455→        setAttachedComments([]);
+  1456→        setArtifact(null);
+  1457→        setError(message);
+  1458→        savedArtifactRef.current = null;
+  1459→        pendingWritesRef.current.clear();
+  1460→        messagesConversationIdRef.current = null;
+  1461→        setMessagesConversationId(null);
+  1462→        setFailedMessagesConversationId(activeConversationId);
+  1463→      }
+  1464→    })();
+  1465→    return () => {
+  1466→      cancelled = true;
+  1467→    };
+  1468→  }, [project.id, activeConversationId, messageLoadRetryNonce]);
+  1469→
+  1470→  useEffect(() => {
+  1471→    return () => {
+  1472→      sendTextBufferRef.current?.cancel();
+  1473→      sendTextBufferRef.current = null;
+  1474→      // Unmounts / conversation switches should only detach local stream
+  1475→      // consumers. Aborting the daemon cancel controllers here turns routine
+  1476→      // cleanup into an explicit POST /api/runs/:id/cancel, which can mark a
+  1477→      // live run canceled even when the user never clicked Stop.
+  1478→      abortRef.current?.abort();
+  1479→      abortRef.current = null;
+  1480→      cancelRef.current = null;
+  1481→      for (const textBuffer of reattachTextBuffersRef.current) textBuffer.cancel();
+  1482→      reattachTextBuffersRef.current.clear();
+  1483→      for (const controller of reattachControllersRef.current.values()) {
+  1484→        if (abortRef.current === controller) abortRef.current = null;
+  1485→        controller.abort();
+  1486→      }
+  1487→      for (const controller of reattachCancelControllersRef.current.values()) {
+  1488→        // Route changes should only detach the browser-side SSE listener.
+  1489→        // Aborting this signal maps to POST /cancel, so leave the daemon run alive.
+  1490→        if (cancelRef.current === controller) cancelRef.current = null;
+  1491→      }
+  1492→      reattachControllersRef.current.clear();
+  1493→      reattachCancelControllersRef.current.clear();
+  1494→    };
+  1495→  }, [project.id, activeConversationId]);
+  1496→
+  1497→  const cancelSendTextBuffer = useCallback((flushPending = false) => {
+  1498→    if (flushPending) sendTextBufferRef.current?.flush();
+  1499→    sendTextBufferRef.current?.cancel();
+  1500→    sendTextBufferRef.current = null;
+  1501→  }, []);
+  1502→
+  1503→  const cancelReattachTextBuffers = useCallback((flushPending = false) => {
+  1504→    for (const textBuffer of reattachTextBuffersRef.current) {
+  1505→      if (flushPending) textBuffer.flush();
+  1506→      textBuffer.cancel();
+  1507→    }
+  1508→    reattachTextBuffersRef.current.clear();
+  1509→  }, []);
+  1510→
+  1511→  const notifyCompletedRun = useCallback((last: ChatMessage) => {
+  1512→    // Round 7 (mrcfps @ useDesignMdState.ts:131): a chat turn just
+  1513→    // settled — conversation updatedAt almost certainly moved, so
+  1514→    // recompute DESIGN.md staleness even when the turn produced no
+  1515→    // file mutations or live artifacts.
+  1516→    setDesignMdRefreshKey((n) => n + 1);
+  1517→
+  1518→    const status = last.runStatus;
+  1519→    if (status !== 'succeeded' && status !== 'failed') return;
+  1520→
+  1521→    const cfg = config.notifications ?? DEFAULT_NOTIFICATIONS;
+  1522→    if (cfg.soundEnabled) {
+  1523→      playSound(status === 'succeeded' ? cfg.successSoundId : cfg.failureSoundId);
+  1524→    }
+  1525→
+  1526→    if (cfg.desktopEnabled) {
+  1527→      // Successes only interrupt when the user is on another tab/window.
+  1528→      // Failures alert regardless — losing a long agent run silently is
+  1529→      // worse than a small interruption when the page is in focus.
+  1530→      const isHidden = typeof document !== 'undefined' && document.hidden;
+  1531→      const isFocused = typeof document === 'undefined' ? true : document.hasFocus();
+  1532→      if (status === 'failed' || isHidden || !isFocused) {
+  1533→        const title = status === 'succeeded'
+  1534→          ? t('notify.successTitle')
+  1535→          : t('notify.failureTitle');
+  1536→        const fallbackBody = status === 'succeeded'
+  1537→          ? t('notify.successBody')
+  1538→          : t('notify.failureBody');
+  1539→        const trimmed = (last.content ?? '').trim();
+  1540→        const body = trimmed ? trimmed.slice(0, 80) : fallbackBody;
+  1541→        void showCompletionNotification({
+  1542→          status,
+  1543→          title,
+  1544→          body,
+  1545→          onClick: () => {
+  1546→            if (typeof window !== 'undefined') window.focus();
+  1547→          },
+  1548→        });
+  1549→      }
+  1550→    }
+  1551→  }, [config.notifications, t]);
+  1552→
+  1553→  // Fire completion feedback from assistant run-status transitions rather than
+  1554→  // from the local SSE listener state. A run can finish while its conversation
+  1555→  // is detached; when the user returns, the terminal status should still produce
+  1556→  // the one completion notification for runs this view previously saw active.
+  1557→  useEffect(() => {
+  1558→    const completedMessages: ChatMessage[] = [];
+  1559→    for (const message of messages) {
+  1560→      if (message.role !== 'assistant') continue;
+  1561→      const keys = message.runId ? [message.runId, message.id] : [message.id];
+  1562→      if (isActiveRunStatus(message.runStatus)) {
+  1563→        for (const key of keys) activeCompletionNotificationRunsRef.current.add(key);
+  1564→        continue;
+  1565→      }
+  1566→      if (message.runStatus !== 'succeeded' && message.runStatus !== 'failed') continue;
+  1567→      if (!keys.some((key) => activeCompletionNotificationRunsRef.current.has(key))) continue;
+  1568→      if (keys.some((key) => completedNotificationRunsRef.current.has(key))) continue;
+  1569→      for (const key of keys) completedNotificationRunsRef.current.add(key);
+  1570→      completedMessages.push(message);
+  1571→    }
+  1572→
+  1573→    for (const message of completedMessages) notifyCompletedRun(message);
+  1574→  }, [messages, notifyCompletedRun]);
+  1575→
+  1576→  // Hydrate the open-tabs state once per project. After this initial
+  1577→  // load, every mutation flows through saveTabsState() which keeps DB +
+  1578→  // local state coherent.
+  1579→  useEffect(() => {
+  1580→    let cancelled = false;
+  1581→    tabsLoadedRef.current = false;
+  1582→    tabsHydratedFromSavedStateRef.current = false;
+  1583→    hasAppliedInitialPrimaryOpenRef.current = false;
+  1584→    setOpenTabsState({ tabs: [], active: null });
+  1585→    (async () => {
+  1586→      const state = await loadTabs(project.id);
+  1587→      if (cancelled) return;
+  1588→      const routeActive = routeFileNameRef.current;
+  1589→      let nextState = routeActive
+  1590→        ? {
+  1591→            ...state,
+  1592→            tabs: state.tabs.includes(routeActive)
+  1593→              ? state.tabs
+  1594→              : [...state.tabs, routeActive],
+  1595→            active: routeActive,
+  1596→          }
+  1597→        : state;
+  1598→      if (routeActive) {
+  1599→        nextState = cacheTabsLocally(project.id, nextState);
+  1600→        void persistTabsToDaemonNow(project.id, nextState);
+  1601→      }
+  1602→      tabsHydratedFromSavedStateRef.current = state.hasSavedState === true;
+  1603→      setOpenTabsState(nextState);
+  1604→      tabsLoadedRef.current = true;
+  1605→    })();
+  1606→    return () => {
+  1607→      cancelled = true;
+  1608→    };
+  1609→  }, [project.id]);
+  1610→
+  1611→  // Debounce the canonical (daemon + SQLite) tab-state write. The embedded
+  1612→  // browser fans out url/title/favicon updates in bursts on a single page load
+  1613→  // (did-navigate, did-navigate-in-page, page-title-updated, favicon), and each
+  1614→  // used to be a localStorage write + HTTP PUT + SQLite UPDATE + re-render.
+  1615→  // We keep React state and the local cache IMMEDIATE (so the UI and a reload
+  1616→  // are never stale) and coalesce only the daemon PUT.
+  1617→  const tabsDaemonSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  1618→  const pendingDaemonTabsRef = useRef<OpenTabsState | null>(null);
+  1619→  const flushTabsDaemonSave = useCallback(() => {
+  1620→    if (tabsDaemonSaveTimerRef.current != null) {
+  1621→      clearTimeout(tabsDaemonSaveTimerRef.current);
+  1622→      tabsDaemonSaveTimerRef.current = null;
+  1623→    }
+  1624→    const pending = pendingDaemonTabsRef.current;
+  1625→    pendingDaemonTabsRef.current = null;
+  1626→    if (pending) void persistTabsToDaemonNow(project.id, pending);
+  1627→  }, [project.id]);
+  1628→
+  1629→  const persistTabsState = useCallback(
+  1630→    (next: OpenTabsState) => {
+  1631→      setOpenTabsState(next);
+  1632→      if (!tabsLoadedRef.current) return;
+  1633→      // Immediate, cheap, synchronous — keeps the cache canonical for reload.
+  1634→      const stamped = cacheTabsLocally(project.id, next);
+  1635→      pendingDaemonTabsRef.current = stamped;
+  1636→      if (tabsDaemonSaveTimerRef.current != null) {
+  1637→        clearTimeout(tabsDaemonSaveTimerRef.current);
+  1638→      }
+  1639→      tabsDaemonSaveTimerRef.current = setTimeout(() => {
+  1640→        tabsDaemonSaveTimerRef.current = null;
+  1641→        const pending = pendingDaemonTabsRef.current;
+  1642→        pendingDaemonTabsRef.current = null;
+  1643→        if (pending) void persistTabsToDaemonNow(project.id, pending);
+  1644→      }, TAB_PERSIST_DEBOUNCE_MS);
+  1645→    },
+  1646→    [project.id],
+  1647→  );
+  1648→
+  1649→  // Flush any pending tab write when the project changes or the view unmounts,
+  1650→  // so a fast project switch / close doesn't leave the daemon a debounce behind.
+  1651→  useEffect(() => flushTabsDaemonSave, [flushTabsDaemonSave]);
+  1652→
+  1653→  const handleActiveWorkspaceContextChange = useCallback((next: WorkspaceContextItem | null) => {
+  1654→    setActiveWorkspaceContext((current) =>
+  1655→      workspaceContextItemEqual(current, next) ? current : next,
+  1656→    );
+  1657→  }, []);
+  1658→
+  1659→  const handleWorkspaceContextsChange = useCallback((next: WorkspaceContextItem[]) => {
+  1660→    setWorkspaceContexts((current) =>
+  1661→      workspaceContextItemsEqual(current, next) ? current : next,
+  1662→    );
+  1663→  }, []);
+  1664→
+  1665→  const refreshProjectFiles = useCallback(async (): Promise<ProjectFile[]> => {
+  1666→    const next = await fetchProjectFiles(project.id);
+  1667→    projectFilesRef.current = next;
+  1668→    setProjectFiles(next);
+  1669→    return next;
+  1670→  }, [project.id]);
+  1671→
+  1672→  useEffect(() => {
+  1673→    projectFilesRef.current = projectFiles;
+  1674→  }, [projectFiles]);
+  1675→
+  1676→  // Cache HTML file contents so the auto-open module check (issue #2744) does
+  1677→  // not re-fetch unchanged entries on every Write. Keyed by file name with the
+  1678→  // mtime stored alongside, so a rewrite REPLACES the file's single entry
+  1679→  // rather than accreting a new key. Bounded by the project's HTML file count.
+  1680→  const htmlContentCacheRef = useRef<Map<string, { mtime: number; text: string | null }>>(
+  1681→    new Map(),
+  1682→  );
+  1683→  const readProjectHtml = useCallback(
+  1684→    async (name: string): Promise<string | null> => {
+  1685→      const file = projectFilesRef.current.find((entry) => entry.name === name);
+  1686→      const mtime = file?.mtime ?? 0;
+  1687→      const cached = htmlContentCacheRef.current.get(name);
+  1688→      if (cached && cached.mtime === mtime) return cached.text;
+  1689→      try {
+  1690→        const response = await fetch(projectRawUrl(project.id, name));
+  1691→        const text = response.ok ? await response.text() : null;
+  1692→        htmlContentCacheRef.current.set(name, { mtime, text });
+  1693→        return text;
+  1694→      } catch {
+  1695→        htmlContentCacheRef.current.set(name, { mtime, text: null });
+  1696→        return null;
+  1697→      }
+  1698→    },
+  1699→    [project.id],
+  1700→  );
+  1701→
+  1702→  const refreshLiveArtifacts = useCallback(async (): Promise<LiveArtifactSummary[]> => {
+  1703→    const next = await fetchLiveArtifacts(project.id);
+  1704→    setLiveArtifacts(next);
+  1705→    return next;
+  1706→  }, [project.id]);
+  1707→
+  1708→  const refreshWorkspaceItems = useCallback(async (): Promise<ProjectFile[]> => {
+  1709→    const [nextFiles] = await Promise.all([refreshProjectFiles(), refreshLiveArtifacts()]);
+  1710→    return nextFiles;
+  1711→  }, [refreshLiveArtifacts, refreshProjectFiles]);
+  1712→
+  1713→  useEffect(() => {
+  1714→    if (!tabsLoadedRef.current) return;
+  1715→    if (hasAppliedInitialPrimaryOpenRef.current) return;
+  1716→    if (routeFileName) return;
+  1717→    if (openTabsState.active || openTabsState.tabs.length > 0) {
+  1718→      hasAppliedInitialPrimaryOpenRef.current = true;
+  1719→      return;
+  1720→    }
+  1721→    if (tabsHydratedFromSavedStateRef.current) {
+  1722→      hasAppliedInitialPrimaryOpenRef.current = true;
+  1723→      return;
+  1724→    }
+  1725→    const primaryFile = selectPrimaryProjectFile(projectFiles);
+  1726→    if (!primaryFile) return;
+  1727→    hasAppliedInitialPrimaryOpenRef.current = true;
+  1728→    persistTabsState({ tabs: [primaryFile.name], active: primaryFile.name });
+  1729→  }, [openTabsState.active, openTabsState.tabs.length, persistTabsState, projectFiles, routeFileName]);
+  1730→
+  1731→  const requestOpenFile = useCallback((name: string) => {
+  1732→    if (!name) return;
+  1733→    setOpenRequest({ name, nonce: Date.now() });
+  1734→  }, []);
+  1735→
+  1736→  const persistArtifact = useCallback(
+  1737→    async (art: Artifact, projectFilesSnapshot?: ProjectFile[], sourceText?: string) => {
+  1738→      const recoveredHtml = recoverHtmlArtifactFromPrecedingDocument({
+  1739→        artifactHtml: art.html,
+  1740→        identifier: art.identifier,
+  1741→        sourceText,
+  1742→      });
+  1743→      const artifactToPersist = recoveredHtml ? { ...art, html: recoveredHtml } : art;
+  1744→      const baseName = artifactBaseNameFor(art);
+  1745→      const ext = artifactExtensionFor(art);
+  1746→      // Pick a name that doesn't collide with an existing project file.
+  1747→      // The first run uses `<base>.<ext>`; subsequent runs append `-2`, `-3`…
+  1748→      // so prior artifacts aren't silently overwritten.
+  1749→      const currentProjectFiles = projectFilesSnapshot ?? projectFilesRef.current;
+  1750→      const existing = new Set(currentProjectFiles.map((f) => f.name));
+  1751→      let fileName = `${baseName}${ext}`;
+  1752→      let n = 2;
+  1753→      while (existing.has(fileName) && savedArtifactRef.current !== fileName) {
+  1754→        fileName = `${baseName}-${n}${ext}`;
+  1755→        n += 1;
+  1756→      }
+  1757→      if (ext === '.html') {
+  1758→        const pointerTarget = resolveHtmlPointerArtifactTarget({
+  1759→          content: artifactToPersist.html,
+  1760→          candidateFileName: fileName,
+  1761→          projectFiles: currentProjectFiles,
+  1762→        });
+  1763→        if (pointerTarget) {
+  1764→          if (savedArtifactRef.current === pointerTarget) return;
+  1765→          savedArtifactRef.current = pointerTarget;
+  1766→          requestOpenFile(pointerTarget);
+  1767→          return;
+  1768→        }
+  1769→      }
+  1770→      // Pre-write structural gate for HTML artifacts (#50, #1143). Reject
+  1771→      // bodies that obviously aren't a complete document — usually a one-line
+  1772→      // prose summary the model emitted inside `<artifact type="text/html">`
+  1773→      // when only Edit-tool changes happened this turn. Without this guard,
+  1774→      // such content lands as a phantom HTML file in the project panel.
+  1775→      if (ext === '.html') {
+  1776→        const validation = validateHtmlArtifact(artifactToPersist.html);
+  1777→        if (!validation.ok) {
+  1778→          setError(`Refused to save artifact "${art.identifier || art.title || 'untitled'}": ${validation.reason}`);
+  1779→          return;
+  1780→        }
+  1781→      }
+  1782→      if (savedArtifactRef.current === fileName) return;
+  1783→      savedArtifactRef.current = fileName;
+  1784→      const title = art.title || art.identifier || fileName;
+  1785→      const metadata = {
+  1786→        identifier: art.identifier,
+  1787→        artifactType: art.artifactType,
+  1788→        inferred: false,
+  1789→      };
+  1790→      const manifest =
+  1791→        ext === '.html'
+  1792→          ? createHtmlArtifactManifest({
+  1793→              entry: fileName,
+  1794→              title,
+  1795→              sourceSkillId: project.skillId ?? undefined,
+  1796→              designSystemId: project.designSystemId,
+  1797→              metadata,
+  1798→            })
+  1799→          : inferLegacyManifest({
+  1800→              entry: fileName,
+  1801→              title,
+  1802→              metadata: {
+  1803→                ...metadata,
+  1804→                sourceSkillId: project.skillId ?? undefined,
+  1805→                designSystemId: project.designSystemId,
+  1806→              },
+  1807→            });
+  1808→      const file = await writeProjectTextFile(project.id, fileName, artifactToPersist.html, {
+  1809→        artifactManifest: manifest ?? undefined,
+  1810→      });
+  1811→      if (file) {
+  1812→        setFilesRefresh((n) => n + 1);
+  1813→        // Surface the daemon's stub-guard warning when it fires in `warn`
+  1814→        // mode (the default). Without this the warning would land in the
+  1815→        // file metadata silently and the user would never see that the
+  1816→        // model shipped a placeholder.
+  1817→        if (file.stubGuardWarning) {
+  1818→          setError(
+  1819→            `Saved "${file.name}", but the model may have shipped a placeholder: ` +
+  1820→              `${file.stubGuardWarning.message}`,
+  1821→          );
+  1822→        }
+  1823→        // Auto-open the freshly-persisted artifact as a tab so the user
+  1824→        // sees it without an extra click. The Write-tool path already does
+  1825→        // this for tool-emitted files; this handles the artifact-tag path.
+  1826→        requestOpenFile(file.name);
+  1827→      } else {
+  1828→        // writeProjectTextFile collapses all failure paths (non-OK HTTP
+  1829→        // responses, network errors, and stub-guard 422s) to null — the
+  1830→        // helper's return contract would need to be widened to distinguish
+  1831→        // them, which is out of scope here.  Show a generic banner so the
+  1832→        // failure is observable rather than silent; the daemon logs carry
+  1833→        // the structured details for any specific error type.
+  1834→        // Clear the saved-artifact ref so the user can retry.
+  1835→        savedArtifactRef.current = '';
+  1836→        setError(
+  1837→          `Couldn't save artifact "${fileName}". The write failed — ` +
+  1838→            'check the daemon logs for details.',
+  1839→        );
+  1840→      }
+  1841→    },
+  1842→    [project.id, project.designSystemId, project.skillId, requestOpenFile],
+  1843→  );
+  1844→
+  1845→  const artifactFromStandaloneHtml = useCallback((sourceText: string): Artifact | null => {
+  1846→    const html = recoverStandaloneHtmlDocument(sourceText)
+  1847→      ?? recoverHtmlDocumentFromMarkdownFence(sourceText);
+  1848→    if (!html) return null;
+  1849→    return {
+  1850→      identifier: 'response',
+  1851→      artifactType: 'text/html',
+  1852→      title: 'Response',
+  1853→      html,
+  1854→    };
+  1855→  }, []);
+  1856→
+  1857→  // Set of project file names that the chat surface uses to decide whether
+  1858→  // a tool card's path is openable as a tab. Recomputed on every file-list
+  1859→  // change; tool cards just read from the set.
+  1860→  const projectFileNames = useMemo(
+  1861→    () => new Set(projectFiles.map((f) => f.name)),
+  1862→    [projectFiles],
+  1863→  );
+  1864→  const activeProjectFileName = useMemo(
+  1865→    () => (
+  1866→      openTabsState.active && projectFileNames.has(openTabsState.active)
+  1867→        ? openTabsState.active
+  1868→        : null
+  1869→    ),
+  1870→    [openTabsState.active, projectFileNames],
+  1871→  );
+  1872→  const agentsById = useMemo(
+  1873→    () => new Map(agents.map((agent) => [agent.id, agent])),
+  1874→    [agents],
+  1875→  );
+  1876→
+  1877→  // Keep the @-picker's source of truth fresh: every refreshSignal bump
+  1878→  // (artifact saved, sketch saved, image uploaded) refetches; on first
+  1879→  // mount we also do an initial pull so attachments staged before the
+  1880→  // agent has written anything still see the user's pasted images.
+  1881→  useEffect(() => {
+  1882→    void refreshWorkspaceItems().catch(() => {
+  1883→      // The daemon probe can briefly lag behind a just-started local
+  1884→      // runtime. Retry when daemonLive flips or the explicit refresh key
+  1885→      // changes instead of leaving the project view in its empty shell.
+  1886→    });
+  1887→  }, [daemonLive, refreshWorkspaceItems, filesRefresh]);
+  1888→
+  1889→  // Live-reload: when the daemon's chokidar watcher reports a file change,
+  1890→  // bump filesRefresh so the file list refetches with new mtimes — which
+  1891→  // propagates through to FileViewer iframes via PR #384's ?v=${mtime}
+  1892→  // cache-bust, triggering an automatic preview reload without a click.
+  1893→  //
+  1894→  // Coalesce the refresh: agent rewrites surface to chokidar as an
+  1895→  // `unlink` + `add` (+ later `change`) burst within a single tick (#2195).
+  1896→  // Refreshing the file list on the intermediate `unlink` makes the open
+  1897→  // tab's active file vanish for one frame before the `add` restores it,
+  1898→  // and FileWorkspace's "tab no longer on disk" path then drops the user
+  1899→  // out of their preview. A short trailing wait absorbs the burst; the
+  1900→  // maxWait cap stops a sustained edit storm from starving the UI.
+  1901→  const refreshFilesAndDesignMd = useCallback(() => {
+  1902→    setFilesRefresh((n) => n + 1);
+  1903→    // Round 7 (mrcfps): file mutations are the dominant staleness signal
+  1904→    // post-finalize — bump the refresh key so DESIGN.md staleness
+  1905→    // recomputes against the new mtimes.
+  1906→    setDesignMdRefreshKey((n) => n + 1);
+  1907→  }, []);
+  1908→  const coalescedFileChangedRefresh = useCoalescedCallback(
+  1909→    refreshFilesAndDesignMd,
+  1910→    { wait: 80, maxWait: 250 },
+  1911→  );
+  1912→  const handleProjectEvent = useCallback((evt: ProjectEvent) => {
+  1913→    if (evt.type === 'file-changed') {
+  1914→      iframeKeepAlivePool.evictProject(project.id);
+  1915→      coalescedFileChangedRefresh();
+  1916→      return;
+  1917→    }
+  1918→    if (evt.type === 'conversation-created') {
+  1919→      // A new conversation was inserted into this project by a path the
+  1920→      // open project view can't observe through its own state (currently:
+  1921→      // Routines "Run now" in reuse-an-existing-project mode, #1361).
+  1922→      // Refetch the conversation list so the new entry becomes visible
+  1923→      // without requiring the user to leave and re-enter the project.
+  1924→      // Deliberately do NOT change the active conversation here — the
+  1925→      // user keeps their current context. Auto-switch is a separate UX
+  1926→      // decision tracked in #1361.
+  1927→      if (evt.projectId !== project.id) return;
+  1928→      const capturedProjectId = project.id;
+  1929→      const myToken = ++conversationsRefreshTokenRef.current;
+  1930→      void (async () => {
+  1931→        try {
+  1932→          const list = await listConversations(capturedProjectId);
+  1933→          // Bail if the user switched projects while this request was in
+  1934→          // flight (#1361 review, Codex P1). The captured project id is the
+  1935→          // one we asked the daemon about; the live ref is the one the
+  1936→          // user is looking at right now. If they don't match, applying
+  1937→          // the list would overwrite the new project's sidebar with
+  1938→          // stale data from the old one.
+  1939→          if (projectIdRef.current !== capturedProjectId) return;
+  1940→          // Bail if a newer conversation-created event already dispatched
+  1941→          // its own refresh after us (#1361 review, lefarcen P2). With two
+  1942→          // rapid events the later request may resolve first; if this
+  1943→          // earlier request resolves afterwards it would drop the newer
+  1944→          // conversation. Only the latest dispatch is allowed to apply.
+  1945→          if (conversationsRefreshTokenRef.current !== myToken) return;
+  1946→          setConversations(list);
+  1947→        } catch {
+  1948→          // Defensive: refresh failed (network blip, daemon gone). The
+  1949→          // next project mount or another conversation-created event
+  1950→          // will retry; no need to surface an error here.
+  1951→        }
+  1952→      })();
+  1953→      return;
+  1954→    }
+  1955→    const agentEvent = projectEventToAgentEvent(evt);
+  1956→    if (!agentEvent) return;
+  1957→    setLiveArtifactEvents((prev) => appendLiveArtifactEventItem(prev, agentEvent));
+  1958→    void refreshLiveArtifacts();
+  1959→    onProjectsRefresh();
+  1960→    // Live artifact events come from chat-turn-emitted artifacts; they
+  1961→    // also imply the conversation transcript changed.
+  1962→    setDesignMdRefreshKey((n) => n + 1);
+  1963→  }, [coalescedFileChangedRefresh, iframeKeepAlivePool, onProjectsRefresh, refreshLiveArtifacts, project.id]);
+  1964→  useProjectFileEvents(project.id, daemonLive, handleProjectEvent);
+  1965→
+  1966→  const activePromptContextSignature = useMemo(() => {
+  1967→    const skill = project.skillId
+  1968→      ? (skills.find((s) => s.id === project.skillId) ??
+  1969→        designTemplates.find((s) => s.id === project.skillId))
+  1970→      : null;
+  1971→    const designSystem = project.designSystemId
+  1972→      ? designSystems.find((d) => d.id === project.designSystemId)
+  1973→      : null;
+  1974→    return JSON.stringify({
+  1975→      designSystem: designSystem
+  1976→        ? {
+  1977→            id: designSystem.id,
+  1978→            title: designSystem.title,
+  1979→            category: designSystem.category,
+  1980→            summary: designSystem.summary,
+  1981→            source: designSystem.source ?? null,
+  1982→          }
+  1983→        : null,
+  1984→      skill: skill
+  1985→        ? {
+  1986→            id: skill.id,
+  1987→            name: skill.name,
+  1988→            description: skill.description,
+  1989→            mode: skill.mode,
+  1990→            source: skill.source ?? null,
+  1991→            upstream: skill.upstream,
+  1992→          }
+  1993→        : null,
+  1994→    });
+  1995→  }, [designSystems, designTemplates, project.designSystemId, project.skillId, skills]);
+  1996→  const previousPromptContextSignatureRef = useRef(activePromptContextSignature);
+  1997→  useEffect(() => {
+  1998→    if (previousPromptContextSignatureRef.current === activePromptContextSignature) return;
+  1999→    previousPromptContextSignatureRef.current = activePromptContextSignature;
+  2000→    iframeKeepAlivePool.evictProject(project.id, { includeActive: true });
+
+[showing lines 1-2000 of 6486; use offset=2001 with limit to continue reading]

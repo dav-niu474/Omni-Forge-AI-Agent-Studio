@@ -1,6 +1,6 @@
 // ============================================================================
 // AI Agent Studio - StatusBar Component
-// Open Design pattern: compact, warm, barely there
+// Open Design pattern: compact, warm, barely there — OD polish
 // ============================================================================
 
 "use client";
@@ -19,15 +19,22 @@ export function StatusBar() {
   const StatusIcon = agentStatus.connected ? Wifi : WifiOff;
 
   return (
-    <div className="flex items-center justify-between h-6 px-3 border-t border-border text-[10px] text-muted-foreground/50 shrink-0">
+    <div
+      className="flex items-center justify-between h-6 px-3 shrink-0 text-[10px]"
+      style={{
+        borderTop: "1px solid var(--border-soft)",
+        background: "var(--bg-panel)",
+        color: "var(--text-faint)",
+      }}
+    >
       <div className="flex items-center gap-2">
-        <StatusIcon className={cn("size-2.5", agentStatus.connected ? "text-accent/60" : "text-muted-foreground/30")} />
+        <StatusIcon className={cn("size-2.5", agentStatus.connected ? "text-accent/60" : "")} style={!agentStatus.connected ? { color: "var(--text-faint)" } : undefined} />
         <span>{agentStatus.connected ? "Connected" : "Offline"}</span>
-        <span className="text-muted-foreground/30">·</span>
+        <span style={{ color: "var(--border)" }}>&middot;</span>
         <span>{agentStatus.status === "idle" ? "Ready" : agentStatus.status === "thinking" ? "Thinking" : agentStatus.status === "streaming" ? "Streaming" : "Error"}</span>
         {agentStatus.model && agentStatus.model !== "unknown" && (
           <>
-            <span className="text-muted-foreground/30">·</span>
+            <span style={{ color: "var(--border)" }}>&middot;</span>
             <span>{agentStatus.model}</span>
           </>
         )}

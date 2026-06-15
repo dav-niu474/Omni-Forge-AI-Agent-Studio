@@ -1,6 +1,7 @@
 // ============================================================================
 // AI Agent Studio - SSEEventLog Component
 // Open Design pattern: minimal debug, monospace, accent event colors
+// Polished with OD visual refinements
 // ============================================================================
 
 "use client";
@@ -25,7 +26,10 @@ function EventRow({ event, index }: { event: any; index: number }) {
   });
 
   return (
-    <div className="flex items-start gap-1.5 px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground/35 hover:text-muted-foreground/55 transition-colors">
+    <div
+      className="flex items-start gap-1.5 px-1.5 py-0.5 text-[10px] font-mono hover:bg-[var(--bg-subtle)] transition-colors rounded-sm"
+      style={{ color: "var(--text-faint)" }}
+    >
       <span className="w-4 text-right shrink-0 opacity-40">{index + 1}</span>
       <span className="shrink-0 opacity-40">{time}</span>
       <span className="text-accent/50 font-medium shrink-0">{event.type}</span>
@@ -43,15 +47,22 @@ export function SSEEventLog() {
 
   return (
     <div className="flex flex-col gap-1">
-      <div className="flex items-center justify-between cursor-pointer px-1" onClick={() => setDebugVisible(!debugVisible)}>
+      <div
+        className="flex items-center justify-between cursor-pointer px-1"
+        onClick={() => setDebugVisible(!debugVisible)}
+      >
         <div className="flex items-center gap-1">
-          {debugVisible ? <ChevronDown className="size-2.5 text-muted-foreground/30" /> : <ChevronRight className="size-2.5 text-muted-foreground/30" />}
-          <Bug className="size-2.5 text-muted-foreground/30" />
-          <span className="text-[9px] text-muted-foreground/40">Events</span>
+          {debugVisible ? (
+            <ChevronDown className="size-2.5" style={{ color: "var(--text-faint)" }} />
+          ) : (
+            <ChevronRight className="size-2.5" style={{ color: "var(--text-faint)" }} />
+          )}
+          <Bug className="size-2.5" style={{ color: "var(--text-faint)" }} />
+          <span className="text-[9px]" style={{ color: "var(--text-faint)" }}>Events</span>
           {sseEvents.length > 0 && <span className="text-[9px] text-accent/40">{sseEvents.length}</span>}
         </div>
         {sseEvents.length > 0 && (
-          <Button variant="ghost" size="icon" className="size-4 text-muted-foreground/20 hover:text-foreground"
+          <Button variant="ghost" size="icon" className="size-4 text-[var(--text-faint)] hover:text-foreground"
             onClick={(e) => { e.stopPropagation(); clearSseEvents(); }}>
             <Trash2 className="size-2" />
           </Button>
@@ -67,10 +78,16 @@ export function SSEEventLog() {
             transition={{ duration: 0.12, ease: [0.23, 1, 0.32, 1] }}
             className="overflow-hidden"
           >
-            <ScrollArea className="max-h-24 rounded border border-border bg-card">
+            <ScrollArea
+              className="max-h-24 rounded-md studio-scrollbar"
+              style={{
+                border: "1px solid var(--border-soft)",
+                background: "var(--bg-panel)",
+              }}
+            >
               <div className="flex flex-col py-0.5">
                 {sseEvents.length === 0 ? (
-                  <div className="py-2 text-center text-[9px] text-muted-foreground/30">No events</div>
+                  <div className="py-2 text-center text-[9px]" style={{ color: "var(--text-faint)" }}>No events</div>
                 ) : (
                   sseEvents.map((event, i) => (
                     <EventRow key={event.id} event={event} index={i} />

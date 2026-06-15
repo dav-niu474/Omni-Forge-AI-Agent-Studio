@@ -1,0 +1,632 @@
+     1→// ============================================================================
+     2→// Layout + Theme Showcase
+     3→// 5 Layout paradigms × 5 Color themes
+     4→// ============================================================================
+     5→"use client";
+     6→
+     7→import { useState } from "react";
+     8→import {
+     9→  Type, Image, Video, Music, Box, Sparkles, ArrowUp, Palette, Layers, Code,
+    10→  Wand2, MessageSquare, PanelLeft, LayoutGrid, Monitor, Maximize2, ChevronRight,
+    11→  Send, Bot, User, Play, FileCode, Eye, Zap,
+    12→} from "lucide-react";
+    13→
+    14→// ---------------------------------------------------------------------------
+    15→// Theme tokens
+    16→// ---------------------------------------------------------------------------
+    17→type ThemeId = "terracotta" | "slate" | "neon" | "sage" | "violet";
+    18→
+    19→interface ThemeDef {
+    20→  id: ThemeId;
+    21→  name: string;
+    22→  subtitle: string;
+    23→  t: Record<string, string>;
+    24→}
+    25→
+    26→const THEMES: ThemeDef[] = [
+    27→  {
+    28→    id: "terracotta", name: "Warm Terracotta", subtitle: "温暖赤陶",
+    29→    t: {
+    30→      bgApp: "#1a1917", bgPanel: "#222120", bgSubtle: "#2a2825", bgMuted: "#2e2c29",
+    31→      bgAccentTint: "#2e1a12", border: "#333128", borderSoft: "#2a2825",
+    32→      text: "#e8e4dc", textStrong: "#f2ede4", textMuted: "#9a9690", textSoft: "#6e6b65", textFaint: "#4e4b46",
+    33→      accent: "#d97a56", accentSoft: "#3d2318", accentTint: "#2e1a12",
+    34→      dotGlow: "rgba(217,122,86,0.3)", sendBg: "#d97a56", sendFg: "#1a1917",
+    35→    },
+    36→  },
+    37→  {
+    38→    id: "slate", name: "Cool Slate", subtitle: "冷调石板",
+    39→    t: {
+    40→      bgApp: "#0a0a0c", bgPanel: "#111113", bgSubtle: "#1a1a1e", bgMuted: "#222228",
+    41→      bgAccentTint: "#111827", border: "#2a2a30", borderSoft: "#1f1f24",
+    42→      text: "#e4e4e8", textStrong: "#f4f4f6", textMuted: "#8b8b96", textSoft: "#5c5c66", textFaint: "#3e3e46",
+    43→      accent: "#6366f1", accentSoft: "#1e1b4b", accentTint: "#0f0e24",
+    44→      dotGlow: "rgba(99,102,241,0.4)", sendBg: "#6366f1", sendFg: "#ffffff",
+    45→    },
+    46→  },
+    47→  {
+    48→    id: "neon", name: "Neon Cyan", subtitle: "赛博霓虹",
+    49→    t: {
+    50→      bgApp: "#000000", bgPanel: "#0a0a0a", bgSubtle: "#141414", bgMuted: "#1a1a1a",
+    51→      bgAccentTint: "#001a12", border: "#262626", borderSoft: "#1a1a1a",
+    52→      text: "#e0e0e0", textStrong: "#f0f0f0", textMuted: "#888888", textSoft: "#555555", textFaint: "#333333",
+    53→      accent: "#00e5a0", accentSoft: "#002e1f", accentTint: "#001a12",
+    54→      dotGlow: "rgba(0,229,160,0.4)", sendBg: "#00e5a0", sendFg: "#000000",
+    55→    },
+    56→  },
+    57→  {
+    58→    id: "sage", name: "Soft Sage", subtitle: "柔雾鼠尾草",
+    59→    t: {
+    60→      bgApp: "#fafaf8", bgPanel: "#ffffff", bgSubtle: "#f5f5f2", bgMuted: "#eeece8",
+    61→      bgAccentTint: "#eef5ee", border: "#e8e6e1", borderSoft: "#f0eee9",
+    62→      text: "#37352f", textStrong: "#1a1916", textMuted: "#787574", textSoft: "#9b9a97", textFaint: "#c4c3c0",
+    63→      accent: "#4d8b6a", accentSoft: "#d4e8da", accentTint: "#eef5ee",
+    64→      dotGlow: "rgba(77,139,106,0.3)", sendBg: "#4d8b6a", sendFg: "#ffffff",
+    65→    },
+    66→  },
+    67→  {
+    68→    id: "violet", name: "Deep Violet", subtitle: "深邃紫罗兰",
+    69→    t: {
+    70→      bgApp: "#12111a", bgPanel: "#18172a", bgSubtle: "#201f35", bgMuted: "#28273e",
+    71→      bgAccentTint: "#1a1530", border: "#2e2d48", borderSoft: "#24233a",
+    72→      text: "#e6e4f0", textStrong: "#f4f2ff", textMuted: "#9895ad", textSoft: "#6b6885", textFaint: "#45425f",
+    73→      accent: "#a78bfa", accentSoft: "#2d1f5e", accentTint: "#1a1530",
+    74→      dotGlow: "rgba(167,139,250,0.4)", sendBg: "#a78bfa", sendFg: "#12111a",
+    75→    },
+    76→  },
+    77→];
+    78→
+    79→// ---------------------------------------------------------------------------
+    80→// Layout definitions
+    81→// ---------------------------------------------------------------------------
+    82→type LayoutId = "split" | "chat-first" | "canvas-first" | "immersive" | "card";
+    83→
+    84→interface LayoutDef {
+    85→  id: LayoutId;
+    86→  name: string;
+    87→  subtitle: string;
+    88→  description: string;
+    89→  reference: string;
+    90→}
+    91→
+    92→const LAYOUTS: LayoutDef[] = [
+    93→  {
+    94→    id: "split",
+    95→    name: "Classic Split",
+    96→    subtitle: "经典分栏",
+    97→    description: "左聊天 + 右工作区，传统 IDE 双栏布局，信息密度高",
+    98→    reference: "Cursor / VS Code",
+    99→  },
+   100→  {
+   101→    id: "chat-first",
+   102→    name: "Chat First",
+   103→    subtitle: "对话优先",
+   104→    description: "聊天占据主体，产物从右侧滑入，对话体验沉浸",
+   105→    reference: "ChatGPT / Claude",
+   106→  },
+   107→  {
+   108→    id: "canvas-first",
+   109→    name: "Canvas First",
+   110→    subtitle: "画布优先",
+   111→    description: "工作区/画布占据主体，聊天为侧边浮层，创作沉浸",
+   112→    reference: "Figma / Framer",
+   113→  },
+   114→  {
+   115→    id: "immersive",
+   116→    name: "Immersive",
+   117→    subtitle: "沉浸式",
+   118→    description: "全屏画布，底部对话栏，最小化 UI 干扰",
+   119→    reference: "v0.dev / Lovable",
+   120→  },
+   121→  {
+   122→    id: "card",
+   123→    name: "Floating Cards",
+   124→    subtitle: "浮动卡片",
+   125→    description: "浮动卡片式布局，可自由拖拽排列，空间感强",
+   126→    reference: "Apple Vision Pro",
+   127→  },
+   128→];
+   129→
+   130→// ---------------------------------------------------------------------------
+   131→// Shared mini components
+   132→// ---------------------------------------------------------------------------
+   133→const MODS = [
+   134→  { icon: Type, label: "Text" },
+   135→  { icon: Image, label: "Image" },
+   136→  { icon: Video, label: "Video" },
+   137→  { icon: Music, label: "Audio" },
+   138→  { icon: Box, label: "3D" },
+   139→];
+   140→
+   141→function Dot({ t, size = 6 }: { t: Record<string, string>; size?: number }) {
+   142→  return (
+   143→    <div style={{ width: size, height: size, borderRadius: 999, background: t.accent, boxShadow: `0 0 ${size}px ${t.dotGlow}` }} />
+   144→  );
+   145→}
+   146→
+   147→function Composer({ t, wide = false }: { t: Record<string, string>; wide?: boolean }) {
+   148→  return (
+   149→    <div style={{ padding: wide ? "8px 12px" : "4px 6px" }}>
+   150→      <div style={{
+   151→        borderRadius: 10, border: `1px solid ${t.border}`, background: t.bgPanel,
+   152→        padding: wide ? "10px 12px 6px" : "4px 6px 2px",
+   153→      }}>
+   154→        <div style={{ fontSize: wide ? 11 : 7, color: t.textFaint }}>
+   155→          Describe what you want to create...
+   156→        </div>
+   157→        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: wide ? 8 : 3, marginBottom: 2 }}>
+   158→          <span style={{ fontSize: wide ? 9 : 6, padding: wide ? "2px 6px" : "1px 3px", borderRadius: 4, background: t.accentTint, color: t.accent, fontWeight: 500 }}>Text</span>
+   159→          <div style={{ width: wide ? 24 : 12, height: wide ? 24 : 12, borderRadius: 5, background: t.sendBg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+   160→            <ArrowUp style={{ width: wide ? 12 : 5, height: wide ? 12 : 5, color: t.sendFg }} />
+   161→          </div>
+   162→        </div>
+   163→      </div>
+   164→    </div>
+   165→  );
+   166→}
+   167→
+   168→function EmptyWorkspace({ t, size = "normal" }: { t: Record<string, string>; size?: "small" | "normal" | "large" }) {
+   169→  const s = size === "small" ? 0.7 : size === "large" ? 1.3 : 1;
+   170→  return (
+   171→    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6 * s, flex: 1 }}>
+   172→      <div style={{ width: 32 * s, height: 32 * s, borderRadius: 10 * s, background: t.accentTint, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 0 20px ${t.dotGlow}` }}>
+   173→        <Layers style={{ width: 16 * s, height: 16 * s, color: t.accent, opacity: 0.5 }} />
+   174→      </div>
+   175→      <span style={{ fontSize: 10 * s, fontWeight: 500, color: t.textMuted }}>Workspace</span>
+   176→      <span style={{ fontSize: 7 * s, color: t.textFaint }}>Artifacts appear here</span>
+   177→    </div>
+   178→  );
+   179→}
+   180→
+   181→function ChatMessages({ t, compact = false }: { t: Record<string, string>; compact?: boolean }) {
+   182→  const sz = compact ? 0.75 : 1;
+   183→  return (
+   184→    <div style={{ display: "flex", flexDirection: "column", gap: 8 * sz, padding: compact ? 6 : 10, flex: 1 }}>
+   185→      {/* AI message */}
+   186→      <div style={{ display: "flex", gap: 6 * sz, alignItems: "flex-start" }}>
+   187→        <div style={{ width: 16 * sz, height: 16 * sz, borderRadius: 999, background: t.accentTint, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+   188→          <Bot style={{ width: 8 * sz, height: 8 * sz, color: t.accent }} />
+   189→        </div>
+   190→        <div>
+   191→          <div style={{ fontSize: 6 * sz, fontWeight: 600, color: t.accent, marginBottom: 2, textTransform: "uppercase", letterSpacing: "0.05em" }}>Studio</div>
+   192→          <div style={{ fontSize: 8 * sz, color: t.text, lineHeight: 1.5, maxWidth: 200 * sz }}>
+   193→            I'll help you create that. Let me generate a stunning design for you...
+   194→          </div>
+   195→        </div>
+   196→      </div>
+   197→      {/* User message */}
+   198→      <div style={{ display: "flex", justifyContent: "flex-end" }}>
+   199→        <div style={{ background: t.bgSubtle, borderRadius: 8 * sz, borderBottomRightRadius: 2 * sz, padding: `${4 * sz}px ${8 * sz}px`, maxWidth: 160 * sz }}>
+   200→          <div style={{ fontSize: 8 * sz, color: t.textStrong }}>Create a modern landing page</div>
+   201→        </div>
+   202→      </div>
+   203→    </div>
+   204→  );
+   205→}
+   206→
+   207→// ---------------------------------------------------------------------------
+   208→// Layout A: Classic Split (left chat + right workspace)
+   209→// ---------------------------------------------------------------------------
+   210→function LayoutSplit({ t }: { t: Record<string, string> }) {
+   211→  return (
+   212→    <div style={{ display: "flex", flexDirection: "column", height: "100%", borderRadius: 8, overflow: "hidden", border: `1px solid ${t.border}` }}>
+   213→      {/* Header */}
+   214→      <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "0 10px", height: 28, background: t.bgPanel, borderBottom: `1px solid ${t.borderSoft}` }}>
+   215→        <Dot t={t} size={6} />
+   216→        <span style={{ fontSize: 9, fontWeight: 600, color: t.textStrong }}>Agent Studio</span>
+   217→      </div>
+   218→      <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
+   219→        {/* Chat */}
+   220→        <div style={{ width: "42%", display: "flex", flexDirection: "column", background: t.bgPanel, borderRight: `1px solid ${t.borderSoft}` }}>
+   221→          <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "0 8px", height: 24, borderBottom: `1px solid ${t.borderSoft}` }}>
+   222→            <Sparkles style={{ width: 8, height: 8, color: t.accent }} />
+   223→            <span style={{ fontSize: 7, fontWeight: 500, color: t.textMuted }}>Text</span>
+   224→          </div>
+   225→          <ChatMessages t={t} compact />
+   226→          <Composer t={t} />
+   227→        </div>
+   228→        {/* Workspace */}
+   229→        <div style={{ flex: 1, display: "flex", flexDirection: "column", background: t.bgApp }}>
+   230→          <div style={{ display: "flex", gap: 2, padding: "3px 6px", borderBottom: `1px solid ${t.borderSoft}`, background: t.bgPanel }}>
+   231→            {MODS.map(({ icon: ModIcon, label }, i) => (
+   232→              <div key={label} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 1, width: 22, height: 22, borderRadius: 4, background: i === 0 ? t.accentTint : "transparent", color: i === 0 ? t.accent : t.textSoft, justifyContent: "center" }}>
+   233→                <ModIcon style={{ width: 8, height: 8 }} />
+   234→                <span style={{ fontSize: 5, lineHeight: 1 }}>{label}</span>
+   235→              </div>
+   236→            ))}
+   237→          </div>
+   238→          <EmptyWorkspace t={t} size="normal" />
+   239→          <div style={{ display: "flex", alignItems: "center", padding: "0 6px", height: 14, borderTop: `1px solid ${t.borderSoft}`, background: t.bgPanel }}>
+   240→            <span style={{ fontSize: 5, color: t.textFaint }}>Connected · Ready</span>
+   241→          </div>
+   242→        </div>
+   243→      </div>
+   244→    </div>
+   245→  );
+   246→}
+   247→
+   248→// ---------------------------------------------------------------------------
+   249→// Layout B: Chat First (full chat, artifact slides in from right)
+   250→// ---------------------------------------------------------------------------
+   251→function LayoutChatFirst({ t }: { t: Record<string, string> }) {
+   252→  return (
+   253→    <div style={{ display: "flex", flexDirection: "column", height: "100%", borderRadius: 8, overflow: "hidden", border: `1px solid ${t.border}` }}>
+   254→      {/* Header */}
+   255→      <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "0 12px", height: 28, background: t.bgPanel, borderBottom: `1px solid ${t.borderSoft}` }}>
+   256→        <Dot t={t} size={6} />
+   257→        <span style={{ fontSize: 9, fontWeight: 600, color: t.textStrong }}>Agent Studio</span>
+   258→        <div style={{ marginLeft: "auto", display: "flex", gap: 3 }}>
+   259→          {MODS.map(({ icon: ModIcon, label }, i) => (
+   260→            <div key={label} style={{ display: "flex", alignItems: "center", gap: 2, padding: "2px 5px", borderRadius: 4, background: i === 0 ? t.accentTint : "transparent", color: i === 0 ? t.accent : t.textSoft }}>
+   261→              <ModIcon style={{ width: 7, height: 7 }} />
+   262→              <span style={{ fontSize: 6 }}>{label}</span>
+   263→            </div>
+   264→          ))}
+   265→        </div>
+   266→      </div>
+   267→      <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
+   268→        {/* Main chat area — full width */}
+   269→        <div style={{ flex: 1, display: "flex", flexDirection: "column", background: t.bgApp }}>
+   270→          <ChatMessages t={t} />
+   271→          <Composer t={t} wide />
+   272→        </div>
+   273→        {/* Artifact side panel — slides in */}
+   274→        <div style={{ width: "35%", display: "flex", flexDirection: "column", background: t.bgPanel, borderLeft: `1px solid ${t.borderSoft}` }}>
+   275→          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 8px", height: 24, borderBottom: `1px solid ${t.borderSoft}` }}>
+   276→            <div style={{ display: "flex", alignItems: "center", gap: 3 }}>
+   277→              <FileCode style={{ width: 8, height: 8, color: t.textSoft }} />
+   278→              <span style={{ fontSize: 7, color: t.textMuted }}>landing-page.html</span>
+   279→            </div>
+   280→            <Maximize2 style={{ width: 7, height: 7, color: t.textFaint }} />
+   281→          </div>
+   282→          {/* Artifact preview area */}
+   283→          <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", background: t.bgSubtle, margin: 4, borderRadius: 6, border: `1px solid ${t.borderSoft}` }}>
+   284→            <div style={{ width: "80%", height: "70%", borderRadius: 4, background: "#fff", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }} />
+   285→          </div>
+   286→        </div>
+   287→      </div>
+   288→    </div>
+   289→  );
+   290→}
+   291→
+   292→// ---------------------------------------------------------------------------
+   293→// Layout C: Canvas First (big workspace, chat as sidebar overlay)
+   294→// ---------------------------------------------------------------------------
+   295→function LayoutCanvasFirst({ t }: { t: Record<string, string> }) {
+   296→  return (
+   297→    <div style={{ display: "flex", flexDirection: "column", height: "100%", borderRadius: 8, overflow: "hidden", border: `1px solid ${t.border}` }}>
+   298→      {/* Top toolbar */}
+   299→      <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "0 10px", height: 28, background: t.bgPanel, borderBottom: `1px solid ${t.borderSoft}` }}>
+   300→        <Dot t={t} size={6} />
+   301→        <span style={{ fontSize: 9, fontWeight: 600, color: t.textStrong }}>Agent Studio</span>
+   302→        <div style={{ width: 1, height: 14, background: t.border, margin: "0 4px" }} />
+   303→        {MODS.map(({ icon: ModIcon, label }, i) => (
+   304→          <div key={label} style={{ display: "flex", alignItems: "center", gap: 2, padding: "2px 6px", borderRadius: 4, background: i === 0 ? t.accentTint : "transparent", color: i === 0 ? t.accent : t.textSoft }}>
+   305→            <ModIcon style={{ width: 7, height: 7 }} />
+   306→            <span style={{ fontSize: 6 }}>{label}</span>
+   307→          </div>
+   308→        ))}
+   309→        <div style={{ marginLeft: "auto", display: "flex", gap: 3, alignItems: "center" }}>
+   310→          <Eye style={{ width: 8, height: 8, color: t.textSoft }} />
+   311→          <Zap style={{ width: 8, height: 8, color: t.textSoft }} />
+   312→        </div>
+   313→      </div>
+   314→      <div style={{ display: "flex", flex: 1, minHeight: 0, position: "relative" }}>
+   315→        {/* Big canvas */}
+   316→        <div style={{ flex: 1, background: t.bgApp, display: "flex", alignItems: "center", justifyContent: "center" }}>
+   317→          {/* Artifact preview card */}
+   318→          <div style={{ width: "70%", height: "75%", borderRadius: 8, background: "#fff", boxShadow: "0 4px 24px rgba(0,0,0,0.15)", border: `1px solid ${t.border}` }}>
+   319→            {/* Browser chrome mock */}
+   320→            <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "3px 6px", background: t.bgSubtle, borderRadius: "8px 8px 0 0", borderBottom: `1px solid ${t.border}` }}>
+   321→              <div style={{ display: "flex", gap: 2 }}>
+   322→                <div style={{ width: 4, height: 4, borderRadius: 999, background: "#ff5f57" }} />
+   323→                <div style={{ width: 4, height: 4, borderRadius: 999, background: "#febc2e" }} />
+   324→                <div style={{ width: 4, height: 4, borderRadius: 999, background: "#28c840" }} />
+   325→              </div>
+   326→              <div style={{ flex: 1, height: 6, borderRadius: 3, background: t.bgMuted, margin: "0 4px" }} />
+   327→            </div>
+   328→          </div>
+   329→        </div>
+   330→        {/* Right sidebar chat overlay */}
+   331→        <div style={{ width: "28%", display: "flex", flexDirection: "column", background: t.bgPanel, borderLeft: `1px solid ${t.borderSoft}` }}>
+   332→          <div style={{ display: "flex", alignItems: "center", gap: 3, padding: "0 6px", height: 22, borderBottom: `1px solid ${t.borderSoft}` }}>
+   333→            <MessageSquare style={{ width: 7, height: 7, color: t.accent }} />
+   334→            <span style={{ fontSize: 6, fontWeight: 500, color: t.textMuted }}>Chat</span>
+   335→          </div>
+   336→          <ChatMessages t={t} compact />
+   337→          <Composer t={t} />
+   338→        </div>
+   339→      </div>
+   340→    </div>
+   341→  );
+   342→}
+   343→
+   344→// ---------------------------------------------------------------------------
+   345→// Layout D: Immersive (full canvas, bottom chat bar)
+   346→// ---------------------------------------------------------------------------
+   347→function LayoutImmersive({ t }: { t: Record<string, string> }) {
+   348→  return (
+   349→    <div style={{ display: "flex", flexDirection: "column", height: "100%", borderRadius: 8, overflow: "hidden", border: `1px solid ${t.border}`, background: t.bgApp }}>
+   350→      {/* Minimal top bar */}
+   351→      <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "0 10px", height: 26, background: "transparent" }}>
+   352→        <Dot t={t} size={5} />
+   353→        <span style={{ fontSize: 8, fontWeight: 500, color: t.textMuted }}>Agent Studio</span>
+   354→        <div style={{ marginLeft: "auto", display: "flex", gap: 4, alignItems: "center" }}>
+   355→          {MODS.map(({ icon: ModIcon, label }, i) => (
+   356→            <div key={label} style={{ display: "flex", alignItems: "center", gap: 2, padding: "1px 5px", borderRadius: 3, background: i === 0 ? t.accentTint : "transparent", color: i === 0 ? t.accent : t.textSoft }}>
+   357→              <ModIcon style={{ width: 7, height: 7 }} />
+   358→              <span style={{ fontSize: 5 }}>{label}</span>
+   359→            </div>
+   360→          ))}
+   361→        </div>
+   362→      </div>
+   363→      {/* Full canvas with artifact */}
+   364→      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 8 }}>
+   365→        <div style={{ width: "85%", height: "90%", borderRadius: 10, background: "#fff", boxShadow: "0 8px 40px rgba(0,0,0,0.2)", border: `1px solid ${t.border}` }}>
+   366→          {/* Browser chrome */}
+   367→          <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "4px 8px", background: t.bgSubtle, borderRadius: "10px 10px 0 0", borderBottom: `1px solid ${t.border}` }}>
+   368→            <div style={{ display: "flex", gap: 3 }}>
+   369→              <div style={{ width: 5, height: 5, borderRadius: 999, background: "#ff5f57" }} />
+   370→              <div style={{ width: 5, height: 5, borderRadius: 999, background: "#febc2e" }} />
+   371→              <div style={{ width: 5, height: 5, borderRadius: 999, background: "#28c840" }} />
+   372→            </div>
+   373→            <div style={{ flex: 1, height: 8, borderRadius: 4, background: t.bgMuted, margin: "0 6px" }} />
+   374→          </div>
+   375→          {/* Content area */}
+   376→          <div style={{ display: "flex", flexDirection: "column", gap: 6, padding: 12 }}>
+   377→            <div style={{ height: 8, width: "40%", borderRadius: 3, background: t.bgMuted }} />
+   378→            <div style={{ height: 4, width: "80%", borderRadius: 2, background: t.bgSubtle }} />
+   379→            <div style={{ height: 4, width: "60%", borderRadius: 2, background: t.bgSubtle }} />
+   380→            <div style={{ display: "flex", gap: 6, marginTop: 4 }}>
+   381→              <div style={{ height: 30, flex: 1, borderRadius: 4, background: t.accent, opacity: 0.2 }} />
+   382→              <div style={{ height: 30, flex: 1, borderRadius: 4, background: t.bgSubtle }} />
+   383→            </div>
+   384→          </div>
+   385→        </div>
+   386→      </div>
+   387→      {/* Bottom chat bar */}
+   388→      <div style={{ padding: "6px 12px 10px" }}>
+   389→        <div style={{ display: "flex", gap: 6, alignItems: "flex-end", borderRadius: 12, border: `1px solid ${t.border}`, background: t.bgPanel, padding: "8px 12px 6px" }}>
+   390→          <div style={{ flex: 1, fontSize: 9, color: t.textFaint }}>Ask me to create anything...</div>
+   391→          <div style={{ display: "flex", gap: 3, alignItems: "center" }}>
+   392→            <span style={{ fontSize: 6, padding: "1px 4px", borderRadius: 3, background: t.accentTint, color: t.accent }}>Text</span>
+   393→            <div style={{ width: 22, height: 22, borderRadius: 6, background: t.sendBg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+   394→              <ArrowUp style={{ width: 10, height: 10, color: t.sendFg }} />
+   395→            </div>
+   396→          </div>
+   397→        </div>
+   398→      </div>
+   399→    </div>
+   400→  );
+   401→}
+   402→
+   403→// ---------------------------------------------------------------------------
+   404→// Layout E: Floating Cards (card-based, spatial UI)
+   405→// ---------------------------------------------------------------------------
+   406→function LayoutCard({ t }: { t: Record<string, string> }) {
+   407→  return (
+   408→    <div style={{ display: "flex", flexDirection: "column", height: "100%", borderRadius: 8, overflow: "hidden", border: `1px solid ${t.border}`, background: t.bgApp }}>
+   409→      {/* Minimal top bar */}
+   410→      <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "0 10px", height: 26, background: "transparent" }}>
+   411→        <Dot t={t} size={5} />
+   412→        <span style={{ fontSize: 8, fontWeight: 500, color: t.textMuted }}>Agent Studio</span>
+   413→        <div style={{ marginLeft: "auto", display: "flex", gap: 3 }}>
+   414→          {MODS.map(({ icon: ModIcon, label }, i) => (
+   415→            <div key={label} style={{ width: 16, height: 16, borderRadius: 4, display: "flex", alignItems: "center", justifyContent: "center", background: i === 0 ? t.accentTint : "transparent", color: i === 0 ? t.accent : t.textSoft }}>
+   416→              <ModIcon style={{ width: 7, height: 7 }} />
+   417→            </div>
+   418→          ))}
+   419→        </div>
+   420→      </div>
+   421→      {/* Card area */}
+   422→      <div style={{ flex: 1, position: "relative", padding: 8 }}>
+   423→        {/* Chat card */}
+   424→        <div style={{
+   425→          position: "absolute", left: 8, top: 8, width: "38%", height: "85%",
+   426→          borderRadius: 12, background: t.bgPanel, border: `1px solid ${t.border}`,
+   427→          boxShadow: "0 8px 32px rgba(0,0,0,0.2)", display: "flex", flexDirection: "column", overflow: "hidden",
+   428→        }}>
+   429→          <div style={{ display: "flex", alignItems: "center", gap: 3, padding: "0 6px", height: 20, borderBottom: `1px solid ${t.borderSoft}` }}>
+   430→            <MessageSquare style={{ width: 7, height: 7, color: t.accent }} />
+   431→            <span style={{ fontSize: 6, fontWeight: 500, color: t.textMuted }}>Chat</span>
+   432→          </div>
+   433→          <ChatMessages t={t} compact />
+   434→          <Composer t={t} />
+   435→        </div>
+   436→        {/* Artifact card */}
+   437→        <div style={{
+   438→          position: "absolute", right: 8, top: 8, width: "58%", height: "55%",
+   439→          borderRadius: 12, background: t.bgPanel, border: `1px solid ${t.border}`,
+   440→          boxShadow: "0 8px 32px rgba(0,0,0,0.15)", display: "flex", flexDirection: "column", overflow: "hidden",
+   441→        }}>
+   442→          <div style={{ display: "flex", alignItems: "center", gap: 3, padding: "0 6px", height: 20, borderBottom: `1px solid ${t.borderSoft}` }}>
+   443→            <Code style={{ width: 7, height: 7, color: t.textSoft }} />
+   444→            <span style={{ fontSize: 6, color: t.textMuted }}>Artifact</span>
+   445→            <div style={{ marginLeft: "auto" }}>
+   446→              <Maximize2 style={{ width: 6, height: 6, color: t.textFaint }} />
+   447→            </div>
+   448→          </div>
+   449→          <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", margin: 3, borderRadius: 6, background: "#fff" }}>
+   450→            <div style={{ width: "80%", height: "80%", display: "flex", flexDirection: "column", gap: 4, padding: 6 }}>
+   451→              <div style={{ height: 6, width: "35%", borderRadius: 2, background: t.bgMuted }} />
+   452→              <div style={{ height: 3, width: "70%", borderRadius: 2, background: t.bgSubtle }} />
+   453→              <div style={{ height: 3, width: "50%", borderRadius: 2, background: t.bgSubtle }} />
+   454→            </div>
+   455→          </div>
+   456→        </div>
+   457→        {/* Critique mini card */}
+   458→        <div style={{
+   459→          position: "absolute", right: 8, bottom: 8, width: "58%", height: "28%",
+   460→          borderRadius: 12, background: t.bgPanel, border: `1px solid ${t.border}`,
+   461→          boxShadow: "0 4px 16px rgba(0,0,0,0.1)", display: "flex", flexDirection: "column", overflow: "hidden",
+   462→        }}>
+   463→          <div style={{ display: "flex", alignItems: "center", gap: 3, padding: "0 6px", height: 18, borderBottom: `1px solid ${t.borderSoft}` }}>
+   464→            <Sparkles style={{ width: 6, height: 6, color: t.accent }} />
+   465→            <span style={{ fontSize: 5, fontWeight: 500, color: t.textMuted }}>Critique</span>
+   466→            <span style={{ fontSize: 5, color: t.textFaint }}>Ship ✓</span>
+   467→          </div>
+   468→          <div style={{ flex: 1, padding: 4, display: "flex", flexDirection: "column", gap: 2 }}>
+   469→            {[80, 75, 90].map((score, i) => (
+   470→              <div key={i} style={{ display: "flex", alignItems: "center", gap: 3 }}>
+   471→                <span style={{ fontSize: 5, color: t.textFaint, width: 30 }}>{["Design", "Brand", "A11y"][i]}</span>
+   472→                <div style={{ flex: 1, height: 2, borderRadius: 1, background: t.bgMuted, overflow: "hidden" }}>
+   473→                  <div style={{ width: `${score}%`, height: "100%", borderRadius: 1, background: score >= 80 ? "#4caf72" : "#e09a40", opacity: 0.6 }} />
+   474→                </div>
+   475→                <span style={{ fontSize: 5, color: t.textSoft, width: 12, textAlign: "right" }}>{score}</span>
+   476→              </div>
+   477→            ))}
+   478→          </div>
+   479→        </div>
+   480→      </div>
+   481→    </div>
+   482→  );
+   483→}
+   484→
+   485→// ---------------------------------------------------------------------------
+   486→// Layout renderer
+   487→// ---------------------------------------------------------------------------
+   488→const LAYOUT_RENDERERS: Record<LayoutId, (t: Record<string, string>) => React.ReactNode> = {
+   489→  split: (t) => <LayoutSplit t={t} />,
+   490→  "chat-first": (t) => <LayoutChatFirst t={t} />,
+   491→  "canvas-first": (t) => <LayoutCanvasFirst t={t} />,
+   492→  immersive: (t) => <LayoutImmersive t={t} />,
+   493→  card: (t) => <LayoutCard t={t} />,
+   494→};
+   495→
+   496→// ---------------------------------------------------------------------------
+   497→// Main page
+   498→// ---------------------------------------------------------------------------
+   499→export default function LayoutShowcase() {
+   500→  const [layout, setLayout] = useState<LayoutId>("split");
+   501→  const [theme, setTheme] = useState<ThemeId>("slate");
+   502→  const selectedTheme = THEMES.find((t) => t.id === theme)!;
+   503→  const selectedLayout = LAYOUTS.find((l) => l.id === layout)!;
+   504→  const t = selectedTheme.t;
+   505→
+   506→  return (
+   507→    <div style={{ minHeight: "100vh", background: "#08080a", color: "#e4e4e8", padding: 24 }}>
+   508→      <div style={{ maxWidth: 1400, margin: "0 auto" }}>
+   509→        {/* Header */}
+   510→        <div style={{ marginBottom: 24 }}>
+   511→          <h1 style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.02em", marginBottom: 4 }}>Layout & Theme Selection</h1>
+   512→          <p style={{ fontSize: 13, color: "#8b8b96" }}>选择布局方案和配色主题，打造你的 Agent Studio</p>
+   513→        </div>
+   514→
+   515→        {/* Layout selector row */}
+   516→        <div style={{ marginBottom: 12 }}>
+   517→          <span style={{ fontSize: 10, fontWeight: 600, color: "#8b8b96", textTransform: "uppercase", letterSpacing: "0.1em" }}>布局方案 Layout</span>
+   518→        </div>
+   519→        <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+   520→          {LAYOUTS.map((l) => (
+   521→            <button
+   522→              key={l.id}
+   523→              onClick={() => setLayout(l.id)}
+   524→              style={{
+   525→                display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 4,
+   526→                padding: "8px 14px", borderRadius: 8, cursor: "pointer", transition: "all 0.15s",
+   527→                border: layout === l.id ? `2px solid ${t.accent}` : "1px solid #2a2a30",
+   528→                background: layout === l.id ? "rgba(255,255,255,0.04)" : "transparent",
+   529→                color: layout === l.id ? "#e4e4e8" : "#8b8b96",
+   530→              }}
+   531→            >
+   532→              <span style={{ fontSize: 11, fontWeight: 600 }}>{l.subtitle}</span>
+   533→              <span style={{ fontSize: 8, color: "#5c5c66" }}>{l.reference}</span>
+   534→            </button>
+   535→          ))}
+   536→        </div>
+   537→
+   538→        {/* Theme selector row */}
+   539→        <div style={{ marginBottom: 12 }}>
+   540→          <span style={{ fontSize: 10, fontWeight: 600, color: "#8b8b96", textTransform: "uppercase", letterSpacing: "0.1em" }}>配色主题 Theme</span>
+   541→        </div>
+   542→        <div style={{ display: "flex", gap: 6, marginBottom: 24 }}>
+   543→          {THEMES.map((th) => (
+   544→            <button
+   545→              key={th.id}
+   546→              onClick={() => setTheme(th.id)}
+   547→              style={{
+   548→                display: "flex", alignItems: "center", gap: 6,
+   549→                padding: "5px 12px", borderRadius: 6, cursor: "pointer", transition: "all 0.15s",
+   550→                border: theme === th.id ? `2px solid ${th.t.accent}` : "1px solid #2a2a30",
+   551→                background: theme === th.id ? "rgba(255,255,255,0.04)" : "transparent",
+   552→              }}
+   553→            >
+   554→              <div style={{ width: 10, height: 10, borderRadius: 999, background: th.t.accent, boxShadow: theme === th.id ? `0 0 8px ${th.t.dotGlow}` : "none" }} />
+   555→              <span style={{ fontSize: 10, fontWeight: 500, color: theme === th.id ? "#e4e4e8" : "#8b8b96" }}>{th.subtitle}</span>
+   556→            </button>
+   557→          ))}
+   558→        </div>
+   559→
+   560→        {/* Two columns: large preview + description */}
+   561→        <div style={{ display: "flex", gap: 24 }}>
+   562→          {/* Large preview */}
+   563→          <div style={{ flex: 1 }}>
+   564→            <div style={{ height: 520 }}>
+   565→              {LAYOUT_RENDERERS[layout](t)}
+   566→            </div>
+   567→          </div>
+   568→
+   569→          {/* Description sidebar */}
+   570→          <div style={{ width: 280, flexShrink: 0 }}>
+   571→            {/* Current selection */}
+   572→            <div style={{
+   573→              padding: 16, borderRadius: 10, background: "rgba(255,255,255,0.03)",
+   574→              border: "1px solid #2a2a30", marginBottom: 16,
+   575→            }}>
+   576→              <div style={{ fontSize: 8, fontWeight: 600, color: "#8b8b96", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8 }}>当前选择</div>
+   577→              <div style={{ fontSize: 16, fontWeight: 700, color: "#f4f4f6", marginBottom: 2 }}>{selectedLayout.subtitle}</div>
+   578→              <div style={{ fontSize: 11, color: "#8b8b96", marginBottom: 8 }}>{selectedLayout.name} + {selectedTheme.subtitle}</div>
+   579→              <div style={{ fontSize: 11, color: "#5c5c66", lineHeight: 1.6 }}>{selectedLayout.description}</div>
+   580→            </div>
+   581→
+   582→            {/* All layout descriptions */}
+   583→            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+   584→              {LAYOUTS.map((l) => (
+   585→                <button
+   586→                  key={l.id}
+   587→                  onClick={() => setLayout(l.id)}
+   588→                  style={{
+   589→                    display: "flex", gap: 8, padding: 10, borderRadius: 8, cursor: "pointer",
+   590→                    border: layout === l.id ? `1px solid ${t.accent}` : "1px solid #2a2a30",
+   591→                    background: layout === l.id ? "rgba(255,255,255,0.03)" : "transparent",
+   592→                    textAlign: "left", transition: "all 0.15s",
+   593→                  }}
+   594→                >
+   595→                  <div style={{ flex: 1 }}>
+   596→                    <div style={{ fontSize: 10, fontWeight: 600, color: layout === l.id ? "#e4e4e8" : "#8b8b96", marginBottom: 2 }}>
+   597→                      {l.subtitle} <span style={{ fontWeight: 400, color: "#5c5c66" }}>· {l.reference}</span>
+   598→                    </div>
+   599→                    <div style={{ fontSize: 9, color: "#5c5c66", lineHeight: 1.5 }}>{l.description}</div>
+   600→                  </div>
+   601→                  {layout === l.id && (
+   602→                    <ChevronRight style={{ width: 12, height: 12, color: t.accent, flexShrink: 0, marginTop: 2 }} />
+   603→                  )}
+   604→                </button>
+   605→              ))}
+   606→            </div>
+   607→
+   608→            {/* Color swatches */}
+   609→            <div style={{ marginTop: 16, padding: 12, borderRadius: 8, border: "1px solid #2a2a30" }}>
+   610→              <div style={{ fontSize: 8, fontWeight: 600, color: "#8b8b96", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8 }}>色彩预览</div>
+   611→              <div style={{ display: "flex", gap: 4 }}>
+   612→                {[
+   613→                  { label: "Accent", color: t.accent },
+   614→                  { label: "Panel", color: t.bgPanel },
+   615→                  { label: "App", color: t.bgApp },
+   616→                  { label: "Subtle", color: t.bgSubtle },
+   617→                  { label: "Tint", color: t.bgAccentTint },
+   618→                ].map(({ label, color }) => (
+   619→                  <div key={label} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+   620→                    <div style={{ width: 20, height: 20, borderRadius: 4, background: color, border: `1px solid #3a3a40` }} />
+   621→                    <span style={{ fontSize: 6, color: "#5c5c66" }}>{label}</span>
+   622→                  </div>
+   623→                ))}
+   624→              </div>
+   625→            </div>
+   626→          </div>
+   627→        </div>
+   628→      </div>
+   629→    </div>
+   630→  );
+   631→}
+   632→

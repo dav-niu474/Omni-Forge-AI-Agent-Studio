@@ -1,0 +1,2002 @@
+     1→/* -------- Chat project header (single row) --------------------------
+     2→   The former standalone chrome header row was removed. This single row
+     3→   now carries: back button, design-system picker, editable project
+     4→   title, and (right-aligned) the session-history trigger. position:
+     5→   relative anchors the absolutely-positioned history popover. */
+     6→.chat-project-header {
+     7→  display: flex;
+     8→  align-items: center;
+     9→  gap: 4px;
+    10→  padding: 8px 12px;
+    11→  border-bottom: none;
+    12→  background: var(--bg-panel);
+    13→  min-width: 0;
+    14→  height: 38px;
+    15→  position: sticky;
+    16→  top: 0;
+    17→  z-index: 4;
+    18→}
+    19→.chat-project-back {
+    20→  width: 28px;
+    21→  height: 28px;
+    22→  padding: 0;
+    23→  border: none;
+    24→  background: transparent;
+    25→  color: var(--text-muted);
+    26→  border-radius: var(--radius-sm);
+    27→  display: inline-flex;
+    28→  align-items: center;
+    29→  justify-content: center;
+    30→  flex: 0 0 auto;
+    31→}
+    32→.chat-project-back:hover {
+    33→  background: var(--bg-subtle);
+    34→  color: var(--text);
+    35→}
+    36→.chat-project-design-system {
+    37→  display: inline-flex;
+    38→  align-items: center;
+    39→  flex: 0 0 auto;
+    40→  min-width: 0;
+    41→  /* Pushed to the right end alongside the session trigger: the title
+    42→     uses flex:1, so this margin parks the picker + session button as a
+    43→     pair at the trailing edge. */
+    44→  margin-inline-start: auto;
+    45→}
+    46→.chat-project-header-title {
+    47→  display: inline-flex;
+    48→  align-items: center;
+    49→  gap: 8px;
+    50→  min-width: 0;
+    51→  flex: 1 1 auto;
+    52→  overflow: hidden;
+    53→}
+    54→.chat-project-header-title .title {
+    55→  color: var(--text-strong);
+    56→  font-size: 13.5px;
+    57→  line-height: 18px;
+    58→  font-weight: 600;
+    59→  letter-spacing: -0.01em;
+    60→  white-space: nowrap;
+    61→  overflow: hidden;
+    62→  text-overflow: ellipsis;
+    63→  flex: 0 1 auto;
+    64→  min-width: 0;
+    65→  /* Editable inline rename: a calm padded chip rather than a hard outline
+    66→     box, so the contentEditable focus ring reads as a field, not brackets.
+    67→     No negative margin — the parent clips overflow, which would shave the
+    68→     left edge of the focus ring. */
+    69→  padding: 1px 6px;
+    70→  border-radius: var(--radius-sm);
+    71→  outline: none;
+    72→  caret-color: var(--accent);
+    73→  transition: background 120ms cubic-bezier(0.23, 1, 0.32, 1),
+    74→    box-shadow 120ms cubic-bezier(0.23, 1, 0.32, 1);
+    75→}
+    76→.chat-project-header-title .title:hover {
+    77→  background: color-mix(in srgb, var(--text) 5%, transparent);
+    78→}
+    79→.chat-project-header-title .title:focus,
+    80→.chat-project-header-title .title:focus-visible {
+    81→  background: var(--bg);
+    82→  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 45%, var(--border));
+    83→}
+    84→.chat-project-header-title .meta {
+    85→  color: var(--text-muted);
+    86→  font-size: 11.5px;
+    87→  line-height: 16px;
+    88→  white-space: nowrap;
+    89→  overflow: hidden;
+    90→  text-overflow: ellipsis;
+    91→  min-width: 0;
+    92→  flex: 0 1 auto;
+    93→}
+    94→
+    95→/* Right-aligned session-history trigger. Collapses the former
+    96→   name + history + new-session controls into one icon button; clicking
+    97→   it opens the history popover (which contains the "new session" entry
+    98→   and the conversation list). The session title is no longer shown
+    99→   inline — the project title owns the header line. */
+   100→.chat-session-switcher {
+   101→  /* NOT a containing block — the .chat-history-menu popover positions
+   102→     itself with left/right:12px relative to the sticky .chat-project-header. */
+   103→  display: inline-flex;
+   104→  align-items: center;
+   105→  flex: 0 0 auto;
+   106→  margin-inline-start: 2px;
+   107→  padding-inline-start: 6px;
+   108→}
+   109→.chat-session-trigger {
+   110→  width: 28px;
+   111→  height: 28px;
+   112→  padding: 0;
+   113→  background: transparent;
+   114→  border: none;
+   115→  border-radius: var(--radius-sm);
+   116→  color: var(--text-muted);
+   117→  display: inline-flex;
+   118→  align-items: center;
+   119→  justify-content: center;
+   120→  cursor: pointer;
+   121→}
+   122→.chat-session-trigger:hover,
+   123→.chat-session-switcher.open .chat-session-trigger {
+   124→  background: var(--bg-subtle);
+   125→  color: var(--text);
+   126→}
+   127→.chat-header-tabs { display: inline-flex; gap: 16px; flex: 1; }
+   128→.chat-header-tab {
+   129→  background: transparent;
+   130→  border: none;
+   131→  border-bottom: 2px solid transparent;
+   132→  border-radius: 0;
+   133→  padding: 8px 0;
+   134→  font-size: 13px;
+   135→  color: var(--text-muted);
+   136→  font-weight: 500;
+   137→}
+   138→.chat-header-tab:hover { color: var(--text); background: transparent; border-color: transparent; }
+   139→.chat-header-tab.active {
+   140→  color: var(--text);
+   141→  border-bottom-color: var(--text);
+   142→}
+   143→.chat-active-conversation {
+   144→  min-width: 0;
+   145→  flex: 1;
+   146→  display: inline-flex;
+   147→  align-items: center;
+   148→  gap: 6px;
+   149→}
+   150→.chat-active-conversation-title {
+   151→  min-width: 0;
+   152→  overflow: hidden;
+   153→  text-overflow: ellipsis;
+   154→  white-space: nowrap;
+   155→  font-size: 13px;
+   156→  font-weight: 600;
+   157→  color: var(--text);
+   158→}
+   159→.chat-active-conversation-rename {
+   160→  width: 24px;
+   161→  height: 24px;
+   162→  padding: 0;
+   163→  border: none;
+   164→  background: transparent;
+   165→  color: var(--text-faint);
+   166→  border-radius: var(--radius-sm);
+   167→  display: inline-flex;
+   168→  align-items: center;
+   169→  justify-content: center;
+   170→  flex: 0 0 auto;
+   171→}
+   172→.chat-active-conversation-rename:hover {
+   173→  background: var(--bg-subtle);
+   174→  color: var(--text);
+   175→}
+   176→.chat-active-conversation-rename:focus-visible {
+   177→  outline: 2px solid var(--accent);
+   178→  outline-offset: 2px;
+   179→}
+   180→.chat-active-conversation-input {
+   181→  width: 100%;
+   182→  min-width: 0;
+   183→  height: 28px;
+   184→  padding: 3px 8px;
+   185→  border: 1px solid var(--border);
+   186→  border-radius: var(--radius-sm);
+   187→  background: var(--bg);
+   188→  color: var(--text);
+   189→  font-size: 13px;
+   190→  font-weight: 600;
+   191→}
+   192→.chat-active-conversation-input:focus {
+   193→  outline: none;
+   194→  border-color: var(--accent);
+   195→  box-shadow: 0 0 0 2px var(--accent-soft);
+   196→}
+   197→.chat-header-actions { display: inline-flex; gap: 4px; align-items: center; margin-left: auto; }
+   198→.chat-header-actions .icon-only {
+   199→  width: 28px; height: 28px;
+   200→  padding: 0;
+   201→  background: transparent;
+   202→  border: none;
+   203→  border-radius: var(--radius-sm);
+   204→  color: var(--text-muted);
+   205→  display: inline-flex;
+   206→  align-items: center;
+   207→  justify-content: center;
+   208→}
+   209→.chat-header-actions .icon-only:hover { background: var(--bg-subtle); color: var(--text); }
+   210→
+   211→.chat-log {
+   212→  flex: 1;
+   213→  overflow-y: auto;
+   214→  overflow-x: hidden;
+   215→  padding: 24px 20px;
+   216→  display: flex;
+   217→  flex-direction: column;
+   218→  gap: 24px;
+   219→  min-width: 0;
+   220→  scrollbar-width: thin;
+   221→  scrollbar-color: color-mix(in srgb, var(--text-muted) 18%, transparent) transparent;
+   222→}
+   223→.chat-log::-webkit-scrollbar {
+   224→  width: 8px;
+   225→}
+   226→.chat-log::-webkit-scrollbar-track {
+   227→  background: transparent;
+   228→  margin: 12px 0;
+   229→}
+   230→.chat-log::-webkit-scrollbar-thumb {
+   231→  background: color-mix(in srgb, var(--text-muted) 18%, transparent);
+   232→  border-radius: var(--radius);
+   233→  border: 2px solid transparent;
+   234→  background-clip: padding-box;
+   235→}
+   236→.chat-log:hover::-webkit-scrollbar-thumb {
+   237→  background: color-mix(in srgb, var(--text-muted) 28%, transparent);
+   238→  background-clip: padding-box;
+   239→}
+   240→
+   241→/* Anchor-to-top tail spacer. Height is driven imperatively by ChatPane; the
+   242→   negative margin cancels the flex `gap` so it contributes nothing when idle
+   243→   (height: 0). */
+   244→.chat-log-tail-spacer {
+   245→  flex: 0 0 auto;
+   246→  height: 0;
+   247→  margin-top: -24px;
+   248→}
+   249→.chat-log.is-loading {
+   250→  position: relative;
+   251→}
+   252→.chat-loading-state {
+   253→  min-height: 220px;
+   254→  display: flex;
+   255→  flex-direction: column;
+   256→  align-items: center;
+   257→  justify-content: center;
+   258→  gap: 12px;
+   259→  color: var(--text-muted);
+   260→  animation: chat-loading-enter 200ms cubic-bezier(0.23, 1, 0.32, 1);
+   261→}
+   262→.chat-loading-mark {
+   263→  display: inline-flex;
+   264→  align-items: center;
+   265→  gap: 5px;
+   266→  height: 22px;
+   267→}
+   268→.chat-loading-mark span {
+   269→  width: 6px;
+   270→  height: 6px;
+   271→  border-radius: var(--radius-pill);
+   272→  background: var(--accent);
+   273→  opacity: 0.32;
+   274→  animation: chat-loading-dot 900ms cubic-bezier(0.23, 1, 0.32, 1) infinite;
+   275→}
+   276→.chat-loading-mark span:nth-child(2) { animation-delay: 120ms; }
+   277→.chat-loading-mark span:nth-child(3) { animation-delay: 240ms; }
+   278→.chat-loading-copy {
+   279→  font-size: 12px;
+   280→  font-weight: 600;
+   281→}
+   282→.chat-loading-lines {
+   283→  width: min(260px, 72%);
+   284→  display: flex;
+   285→  flex-direction: column;
+   286→  gap: 8px;
+   287→}
+   288→.chat-loading-lines span {
+   289→  height: 8px;
+   290→  border-radius: var(--radius-pill);
+   291→  background: linear-gradient(
+   292→    90deg,
+   293→    color-mix(in srgb, var(--text-muted) 10%, transparent),
+   294→    color-mix(in srgb, var(--text-muted) 18%, transparent),
+   295→    color-mix(in srgb, var(--text-muted) 10%, transparent)
+   296→  );
+   297→  background-size: 200% 100%;
+   298→  animation: chat-loading-sheen 1100ms cubic-bezier(0.23, 1, 0.32, 1) infinite;
+   299→}
+   300→.chat-loading-lines span:nth-child(2) { width: 82%; }
+   301→.chat-loading-lines span:nth-child(3) { width: 58%; }
+   302→.chat-virtual-spacer {
+   303→  position: relative;
+   304→  flex: 0 0 auto;
+   305→  min-height: 100%;
+   306→}
+   307→.chat-virtual-row {
+   308→  position: absolute;
+   309→  left: 0;
+   310→  right: 0;
+   311→  top: 0;
+   312→  padding-bottom: 14px;
+   313→  display: flex;
+   314→  flex-direction: column;
+   315→  min-width: 0;
+   316→  will-change: transform;
+   317→}
+   318→@keyframes chat-loading-enter {
+   319→  from { opacity: 0; transform: translateY(6px); }
+   320→  to { opacity: 1; transform: translateY(0); }
+   321→}
+   322→@keyframes chat-loading-dot {
+   323→  0%, 70%, 100% { opacity: 0.3; transform: translateY(0); }
+   324→  35% { opacity: 1; transform: translateY(-4px); }
+   325→}
+   326→@keyframes chat-loading-sheen {
+   327→  from { background-position: 140% 0; }
+   328→  to { background-position: -60% 0; }
+   329→}
+   330→
+   331→/* -------- Messages -------------------------------------------------- */
+   332→.msg {
+   333→  padding: 0;
+   334→  background: transparent;
+   335→  border: none;
+   336→  white-space: normal;
+   337→  word-wrap: break-word;
+   338→  min-width: 0;
+   339→  max-width: 100%;
+   340→  animation: msg-enter 200ms cubic-bezier(0.23, 1, 0.32, 1) both;
+   341→}
+   342→@keyframes msg-enter {
+   343→  from { opacity: 0; transform: translateY(6px); }
+   344→  to { opacity: 1; transform: translateY(0); }
+   345→}
+   346→@media (prefers-reduced-motion: reduce) {
+   347→  .msg { animation: none; }
+   348→}
+   349→.msg.user {
+   350→  align-self: flex-end;
+   351→  display: flex;
+   352→  flex-direction: column;
+   353→  align-items: flex-end;
+   354→  max-width: min(78%, 560px);
+   355→}
+   356→.msg .role {
+   357→  display: flex;
+   358→  align-items: baseline;
+   359→  gap: 8px;
+   360→  font-size: 13.5px;
+   361→  text-transform: none;
+   362→  color: var(--text-strong);
+   363→  margin-bottom: 8px;
+   364→  letter-spacing: 0;
+   365→  font-weight: 600;
+   366→}
+   367→.msg-time {
+   368→  color: var(--text-faint);
+   369→  font-size: 11px;
+   370→  font-weight: 500;
+   371→  font-variant-numeric: tabular-nums;
+   372→  white-space: nowrap;
+   373→}
+   374→.msg.user .role::before { content: ''; }
+   375→.msg.user .role {
+   376→  justify-content: flex-end;
+   377→  color: var(--text-muted);
+   378→}
+   379→.msg.user .user-text {
+   380→  white-space: pre-wrap;
+   381→  color: var(--text);
+   382→  background: var(--bg-fill-tertiary);
+   383→  border: none;
+   384→  border-radius: var(--radius-lg);
+   385→  padding: 8px 12px;
+   386→  line-height: 1.5;
+   387→  font-size: 14.5px;
+   388→  box-shadow: none;
+   389→}
+   390→.msg-run-context-row {
+   391→  display: flex;
+   392→  justify-content: flex-end;
+   393→  align-items: center;
+   394→  flex-wrap: nowrap;
+   395→  gap: 3px;
+   396→  margin: 1px 0 4px;
+   397→  max-width: min(100%, 430px);
+   398→  margin-left: auto;
+   399→  overflow: hidden;
+   400→}
+   401→.msg-mode-chip {
+   402→  display: inline-flex;
+   403→  align-items: center;
+   404→  gap: 3px;
+   405→  box-sizing: border-box;
+   406→  height: 18px;
+   407→  flex: 0 0 auto;
+   408→  padding: 1px 5px;
+   409→  border-radius: var(--radius-sm);
+   410→  border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--border));
+   411→  background: color-mix(in srgb, var(--accent-tint) 72%, var(--bg));
+   412→  color: color-mix(in srgb, var(--accent) 72%, var(--text-strong));
+   413→  font-size: 9px;
+   414→  font-weight: 600;
+   415→  line-height: 12px;
+   416→  white-space: nowrap;
+   417→}
+   418→.msg-mode-chip svg {
+   419→  width: 8px;
+   420→  height: 8px;
+   421→}
+   422→.msg-mode-chip--chat {
+   423→  border-color: color-mix(in srgb, var(--text-soft) 22%, var(--border));
+   424→  background: color-mix(in srgb, var(--bg-subtle) 78%, #fff);
+   425→  color: var(--text-muted);
+   426→}
+   427→.msg-plugin-context {
+   428→  display: inline-flex;
+   429→  align-items: center;
+   430→  justify-content: flex-end;
+   431→  flex-wrap: nowrap;
+   432→  flex: 0 1 auto;
+   433→  gap: 3px;
+   434→  min-width: 0;
+   435→  max-width: 100%;
+   436→  overflow: hidden;
+   437→}
+   438→.msg-plugin-chip {
+   439→  display: inline-flex;
+   440→  align-items: center;
+   441→  gap: 8px;
+   442→  margin: 4px 0 6px;
+   443→  padding: 4px 10px 4px 8px;
+   444→  border-radius: var(--radius-pill);
+   445→  background: var(--bg-fill-tertiary);
+   446→  border: none;
+   447→  font-size: 11.5px;
+   448→  line-height: 1;
+   449→  color: var(--text-muted);
+   450→  max-width: 100%;
+   451→  overflow: hidden;
+   452→  white-space: nowrap;
+   453→  text-align: left;
+   454→  appearance: none;
+   455→}
+   456→.msg-plugin-chip--action {
+   457→  cursor: pointer;
+   458→  transition:
+   459→    background-color 140ms cubic-bezier(0.23, 1, 0.32, 1),
+   460→    border-color 140ms cubic-bezier(0.23, 1, 0.32, 1),
+   461→    box-shadow 140ms cubic-bezier(0.23, 1, 0.32, 1);
+   462→}
+   463→.msg-plugin-chip--action:hover {
+   464→  background: var(--bg-panel);
+   465→  border-color: color-mix(in srgb, var(--accent) 42%, var(--border));
+   466→}
+   467→.msg-plugin-chip--action:focus-visible {
+   468→  outline: 2px solid color-mix(in srgb, var(--accent) 38%, transparent);
+   469→  outline-offset: 2px;
+   470→}
+   471→.msg-plugin-chip__dot {
+   472→  width: 3px;
+   473→  height: 3px;
+   474→  border-radius: 50%;
+   475→  background: var(--accent);
+   476→  flex: 0 0 auto;
+   477→}
+   478→.msg-plugin-chip--design-system .msg-plugin-chip__dot {
+   479→  background: #d76445;
+   480→}
+   481→.msg-plugin-chip__icon {
+   482→  display: inline-flex;
+   483→  align-items: center;
+   484→  justify-content: center;
+   485→  width: 11px;
+   486→  height: 11px;
+   487→  flex: 0 0 11px;
+   488→  border-radius: 3px;
+   489→  background: color-mix(in srgb, var(--text-muted) 10%, var(--bg-subtle));
+   490→  color: var(--text-muted);
+   491→}
+   492→.msg-plugin-chip__icon svg {
+   493→  width: 7px;
+   494→  height: 7px;
+   495→}
+   496→.msg-plugin-chip--workspace {
+   497→  gap: 3px;
+   498→  padding-left: 2px;
+   499→  background: color-mix(in srgb, var(--bg-panel) 82%, var(--bg-subtle));
+   500→  border-color: color-mix(in srgb, var(--text-muted) 18%, var(--border));
+   501→}
+   502→.msg-plugin-chip--workspace-browser .msg-plugin-chip__icon {
+   503→  background: color-mix(in srgb, var(--accent) 10%, var(--bg-subtle));
+   504→  color: var(--accent);
+   505→}
+   506→.msg-plugin-chip__label {
+   507→  display: inline-flex;
+   508→  align-items: center;
+   509→  flex: 1 1 auto;
+   510→  gap: 3px;
+   511→  min-width: 0;
+   512→  overflow: hidden;
+   513→  text-overflow: ellipsis;
+   514→  white-space: nowrap;
+   515→  line-height: 12px;
+   516→}
+   517→.msg-plugin-chip__kind {
+   518→  text-transform: uppercase;
+   519→  letter-spacing: 0.02em;
+   520→  font-weight: 600;
+   521→  font-size: 8.5px;
+   522→  flex: 0 0 auto;
+   523→  color: var(--text-faint);
+   524→}
+   525→.msg-plugin-chip__title {
+   526→  color: var(--text);
+   527→  font-weight: 500;
+   528→  min-width: 0;
+   529→  overflow: hidden;
+   530→  text-overflow: ellipsis;
+   531→  white-space: nowrap;
+   532→}
+   533→.msg-plugin-chip__version,
+   534→.msg-plugin-chip__task {
+   535→  color: var(--text-faint);
+   536→  font-variant-numeric: tabular-nums;
+   537→  overflow: hidden;
+   538→  text-overflow: ellipsis;
+   539→  white-space: nowrap;
+   540→}
+   541→.msg-plugin-chip__task {
+   542→  border-left: 1px solid var(--bg-fill-secondary);
+   543→  padding-left: 8px;
+   544→}
+   545→.msg-plugin-context .context-chip-strip {
+   546→  justify-content: flex-end;
+   547→  min-width: 0;
+   548→  gap: 3px;
+   549→}
+   550→.msg-plugin-context .context-chip-strip__chip {
+   551→  box-sizing: border-box;
+   552→  height: 18px;
+   553→  max-width: 190px;
+   554→  overflow: hidden;
+   555→  border-radius: var(--radius-sm);
+   556→  font-size: 9px;
+   557→  line-height: 12px;
+   558→}
+   559→.msg-plugin-context .context-chip-strip__body {
+   560→  height: 100%;
+   561→  gap: 3px;
+   562→  padding: 1px 5px;
+   563→  line-height: 12px;
+   564→}
+   565→.msg-plugin-context .context-chip-strip__icon svg {
+   566→  width: 7px;
+   567→  height: 7px;
+   568→}
+   569→.msg-plugin-context .context-chip-strip__icon::before {
+   570→  width: 3px;
+   571→  height: 3px;
+   572→  margin-right: 3px;
+   573→  box-shadow: none;
+   574→}
+   575→.msg-plugin-context .context-chip-strip__kind {
+   576→  font-size: 8.5px;
+   577→  letter-spacing: 0.02em;
+   578→}
+   579→.msg-plugin-context .context-chip-strip__remove {
+   580→  width: 14px;
+   581→  height: 14px;
+   582→  font-size: 11px;
+   583→}
+   584→
+   585→/* Wrapper for user bubble + hover action footer */
+   586→.msg.user .user-text-wrap {
+   587→  position: relative;
+   588→  display: flex;
+   589→  flex-direction: column;
+   590→  align-items: flex-end;
+   591→  max-width: 100%;
+   592→}
+   593→.msg.user .user-status-wrap {
+   594→  display: flex;
+   595→  justify-content: flex-end;
+   596→}
+   597→.msg.assistant .op-waiting {
+   598→  display: inline-flex;
+   599→  align-items: center;
+   600→  width: auto;
+   601→  max-width: min(420px, 100%);
+   602→  gap: 7px;
+   603→  padding: 6px 10px;
+   604→  border: 1px solid color-mix(in srgb, var(--text-muted) 16%, var(--border));
+   605→  border-radius: var(--radius);
+   606→  background: color-mix(in srgb, var(--bg-panel) 92%, var(--bg-subtle));
+   607→  box-shadow: none;
+   608→  color: var(--text-muted);
+   609→  font-size: 11.5px;
+   610→  font-style: normal;
+   611→}
+   612→.msg.assistant .op-waiting-dot {
+   613→  width: 6px;
+   614→  height: 6px;
+   615→  flex: 0 0 6px;
+   616→}
+   617→.msg.assistant .op-waiting-label {
+   618→  color: var(--text);
+   619→  font-weight: 600;
+   620→}
+   621→.msg.assistant .op-waiting-detail {
+   622→  max-width: 180px;
+   623→  padding: 1px 5px;
+   624→  border-radius: var(--radius-sm);
+   625→  background: color-mix(in srgb, var(--text) 5%, var(--bg-subtle));
+   626→  overflow: hidden;
+   627→  text-overflow: ellipsis;
+   628→  white-space: nowrap;
+   629→}
+   630→.msg.assistant .op-waiting-hint {
+   631→  flex-basis: auto;
+   632→  color: var(--text-soft);
+   633→  font-size: 11px;
+   634→  font-style: italic;
+   635→}
+   636→.user-status-card {
+   637→  display: inline-flex;
+   638→  align-items: center;
+   639→  gap: 10px;
+   640→  max-width: min(320px, 100%);
+   641→  padding: 9px 11px;
+   642→  border-radius: 14px 14px 4px 14px;
+   643→  background: var(--bg-fill-tertiary);
+   644→  border: none;
+   645→  box-shadow: none;
+   646→  color: var(--text);
+   647→  text-align: start;
+   648→}
+   649→.user-status-card__icon {
+   650→  width: 28px;
+   651→  height: 28px;
+   652→  border-radius: var(--radius);
+   653→  display: inline-flex;
+   654→  align-items: center;
+   655→  justify-content: center;
+   656→  flex: 0 0 auto;
+   657→  color: var(--accent);
+   658→  background: color-mix(in srgb, var(--accent) 12%, transparent);
+   659→}
+   660→.user-status-card__copy {
+   661→  min-width: 0;
+   662→  display: grid;
+   663→  gap: 2px;
+   664→}
+   665→.user-status-card__copy strong {
+   666→  font-size: 12.5px;
+   667→  line-height: 1.2;
+   668→  font-weight: 650;
+   669→}
+   670→.user-status-card__copy span {
+   671→  font-size: 11.5px;
+   672→  line-height: 1.35;
+   673→  color: var(--text-muted);
+   674→}
+   675→
+   676→/* Hover-revealed footer below the user bubble: time + copy (Lobe style) */
+   677→.msg.user .user-actions {
+   678→  display: flex;
+   679→  align-items: center;
+   680→  gap: 4px;
+   681→  margin-top: 4px;
+   682→  min-height: 20px;
+   683→  opacity: 0;
+   684→  transition: opacity 140ms var(--ease-out);
+   685→}
+   686→.msg.user .user-text-wrap:hover .user-actions,
+   687→.msg.user .user-text-wrap:focus-within .user-actions {
+   688→  opacity: 1;
+   689→}
+   690→.msg.user .user-actions-time {
+   691→  font-size: 11px;
+   692→  font-weight: 500;
+   693→  color: var(--text-faint);
+   694→  font-variant-numeric: tabular-nums;
+   695→  white-space: nowrap;
+   696→}
+   697→.msg.user .user-copy-btn {
+   698→  padding: 4px;
+   699→  border: none;
+   700→  background: none;
+   701→  border-radius: var(--radius-sm);
+   702→  color: var(--text-soft);
+   703→  cursor: pointer;
+   704→  display: inline-flex;
+   705→  transition: color 120ms var(--ease-out), background 120ms var(--ease-out);
+   706→}
+   707→.msg.user .user-copy-btn:hover {
+   708→  color: var(--text);
+   709→  background: var(--bg-subtle);
+   710→}
+   711→.msg.user .user-copy-btn:focus-visible {
+   712→  outline: 2px solid var(--accent);
+   713→  outline-offset: 1px;
+   714→}
+   715→@media (hover: none) {
+   716→  .msg.user .user-actions {
+   717→    opacity: 1;
+   718→  }
+   719→}
+   720→.msg.assistant .prose { margin-top: 8px; }
+   721→.msg .artifact-badge {
+   722→  display: inline-block;
+   723→  margin-top: 8px;
+   724→  padding: 2px 8px;
+   725→  font-size: 11px;
+   726→  background: var(--accent);
+   727→  color: white;
+   728→  border-radius: var(--radius-xs);
+   729→}
+   730→/* Run-failure error card. Neutral gray (not red): the actionable next step
+   731→   lives in the AMR card below it; this card just states what happened. */
+   732→.msg.error {
+   733→  border: none;
+   734→  background: var(--bg-fill-tertiary);
+   735→  color: var(--text-muted);
+   736→  padding: 10px 12px;
+   737→  border-radius: var(--radius);
+   738→  display: flex;
+   739→  align-items: center;
+   740→  justify-content: space-between;
+   741→  gap: 10px;
+   742→}
+   743→.chat-error-text { min-width: 0; }
+   744→.chat-error-actions {
+   745→  flex: 0 0 auto;
+   746→  display: flex;
+   747→  align-items: center;
+   748→  gap: 8px;
+   749→}
+   750→.chat-error-copy {
+   751→  width: 28px;
+   752→  height: 28px;
+   753→  padding: 0;
+   754→  display: inline-flex;
+   755→  align-items: center;
+   756→  justify-content: center;
+   757→}
+   758→.chat-error-retry {
+   759→  flex: 0 0 auto;
+   760→  padding: 4px 10px;
+   761→}
+   762→/* Contextual primary action in the gray error card (Authorize & retry / Top up). */
+   763→.chat-error-action {
+   764→  flex: 0 0 auto;
+   765→  appearance: none;
+   766→  cursor: pointer;
+   767→  border: 1px solid var(--accent);
+   768→  background: var(--accent);
+   769→  color: white;
+   770→  font: inherit;
+   771→  font-weight: 600;
+   772→  padding: 4px 12px;
+   773→  border-radius: var(--radius-sm);
+   774→  transition: background 140ms cubic-bezier(0.23, 1, 0.32, 1);
+   775→}
+   776→.chat-error-action:hover {
+   777→  background: var(--accent-hover, var(--accent));
+   778→}
+   779→
+   780→/* AMR guidance card under the gray error card. Theme-color tinted; two
+   781→   content variants (switch / recharge) share the shell. */
+   782→.amr-card {
+   783→  margin-top: 8px;
+   784→  padding: 12px 14px;
+   785→  border: none;
+   786→  background: var(--bg-fill-tertiary);
+   787→  border-radius: var(--radius);
+   788→  display: flex;
+   789→  flex-direction: column;
+   790→  gap: 8px;
+   791→}
+   792→.amr-card__head {
+   793→  display: flex;
+   794→  align-items: center;
+   795→  gap: 8px;
+   796→}
+   797→.amr-card__icon {
+   798→  flex: 0 0 auto;
+   799→  width: 22px;
+   800→  height: 22px;
+   801→  border-radius: 50%;
+   802→  display: grid;
+   803→  place-items: center;
+   804→  background: color-mix(in srgb, var(--accent) 16%, transparent);
+   805→  color: var(--accent);
+   806→  font-weight: 700;
+   807→  font-size: 13px;
+   808→}
+   809→.amr-card__title {
+   810→  font-size: 14px;
+   811→  font-weight: 600;
+   812→  color: var(--text);
+   813→}
+   814→.amr-card__body {
+   815→  margin: 0;
+   816→  font-size: 13px;
+   817→  line-height: 1.55;
+   818→  color: var(--text-muted);
+   819→}
+   820→.amr-card__chips {
+   821→  display: flex;
+   822→  flex-wrap: wrap;
+   823→  gap: 6px;
+   824→}
+   825→.amr-card__chip {
+   826→  font-size: 11px;
+   827→  line-height: 1.4;
+   828→  padding: 3px 8px;
+   829→  border-radius: var(--radius-pill);
+   830→  background: color-mix(in srgb, var(--accent) 10%, transparent);
+   831→  color: var(--accent);
+   832→  border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+   833→}
+   834→.amr-card__actions {
+   835→  display: flex;
+   836→  flex-wrap: wrap;
+   837→  gap: 8px;
+   838→  margin-top: 2px;
+   839→}
+   840→.amr-card__cta {
+   841→  appearance: none;
+   842→  cursor: pointer;
+   843→  border: 1px solid var(--accent);
+   844→  background: var(--accent);
+   845→  color: white;
+   846→  font: inherit;
+   847→  font-weight: 600;
+   848→  font-size: 13px;
+   849→  padding: 7px 14px;
+   850→  border-radius: var(--radius-sm);
+   851→  transition:
+   852→    background 140ms cubic-bezier(0.23, 1, 0.32, 1),
+   853→    border-color 140ms cubic-bezier(0.23, 1, 0.32, 1);
+   854→}
+   855→.amr-card__cta:hover {
+   856→  background: var(--accent-hover, var(--accent));
+   857→}
+   858→
+   859→/* -------- Composer -------------------------------------------------- */
+   860→.pane {
+   861→  --chat-composer-inline-inset: 12px;
+   862→}
+   863→
+   864→.composer {
+   865→  padding: 10px 16px;
+   866→  display: flex;
+   867→  flex-direction: column;
+   868→  gap: 8px;
+   869→  background: transparent;
+   870→  position: relative;
+   871→  z-index: 1;
+   872→}
+   873→.split:has(.session-mode-toggle__popover),
+   874→.split-chat-slot:has(.session-mode-toggle__popover),
+   875→.split-chat-slot > .pane:has(.session-mode-toggle__popover) {
+   876→  overflow: visible;
+   877→}
+   878→.split-chat-slot:has(.session-mode-toggle__popover),
+   879→.split-chat-slot > .pane:has(.session-mode-toggle__popover),
+   880→.composer:has(.session-mode-toggle__popover) {
+   881→  position: relative;
+   882→  z-index: 1500;
+   883→}
+   884→.composer:has(.composer-tools-menu),
+   885→.composer:has(.composer-design-toolbox-menu),
+   886→.composer:has(.composer-import-menu) {
+   887→  z-index: 80;
+   888→}
+   889→.chat-composer-slot {
+   890→  flex: 0 0 auto;
+   891→}
+   892→.chat-composer-fixed-layer {
+   893→  position: fixed;
+   894→  z-index: 45;
+   895→  pointer-events: none;
+   896→  /* `contain: paint` would clip the composer "+" menu, which pops UP and out of
+   897→     this fixed layer's box — the overflow got cut and revealed the chat log
+   898→     behind it. Keep layout/style containment but drop paint so the menu draws
+   899→     fully above the transcript. */
+   900→  contain: layout style;
+   901→  transform: translateZ(0);
+   902→}
+   903→.chat-composer-fixed-layer .composer {
+   904→  pointer-events: auto;
+   905→}
+   906→.composer-shell {
+   907→  container-type: inline-size;
+   908→  border: 1px solid var(--bg-fill-secondary);
+   909→  border-radius: var(--radius-lg);
+   910→  background: var(--bg-fill-tertiary);
+   911→  box-shadow: none;
+   912→  padding: 8px 10px 6px;
+   913→  display: flex;
+   914→  flex-direction: column;
+   915→  gap: 6px;
+   916→  transition: border-color 120ms var(--ease-out), background 120ms var(--ease-out);
+   917→}
+   918→/* When the chat pane is narrow, compact the footer cluster: tighten the
+   919→   model chip + mode toggle, collapse the mode label, and make send/stop
+   920→   icon-only — so the action buttons never overflow or deform. This @container
+   921→   block is shared by every `.composer-shell` (chat footer, comment composer,
+   922→   …), so the breakpoint stays generic; the fixed-layer footer keeps its side
+   923→   inset via child margins rather than shell padding, leaving this width — and
+   924→   every other composer's collapse behavior — untouched. */
+   925→@container (max-width: 430px) {
+   926→  .composer-row .inline-switcher__chip { padding: 0 7px 0 5px; gap: 5px; }
+   927→  /* Hide ONLY the trigger's label — the popover options share this class
+   928→     and must keep their labels ("Ask" / "Design") visible. */
+   929→  .composer-row .session-mode-toggle__trigger .session-mode-toggle__label { display: none; }
+   930→  .composer-row .session-mode-toggle__trigger { padding: 0 7px; gap: 3px; }
+   931→  /* Right-align the popover so it grows leftward and stays inside the narrow
+   932→     chat pane instead of overflowing past its right edge (where the scroll
+   933→     container clips it). */
+   934→  .composer-row .session-mode-toggle__popover { left: auto; right: 0; }
+   935→  .composer-row .composer-send {
+   936→    width: 32px;
+   937→    padding: 0;
+   938→    gap: 0;
+   939→  }
+   940→  .composer-row .composer-send span { display: none; }
+   941→}
+   942→.composer-shell:focus-within {
+   943→  border-color: color-mix(in srgb, var(--accent) 22%, var(--border-strong));
+   944→  box-shadow:
+   945→    0 1px 2px color-mix(in srgb, var(--text) 6%, transparent),
+   946→    0 0 0 1px color-mix(in srgb, var(--accent) 6%, transparent);
+   947→}
+   948→/* Design-system picker row at the top of the composer card (moved out of
+   949→   the former chrome header). A full-bleed hairline divider separates it
+   950→   from the textarea, so the shell carries no padding and each inner row
+   951→   owns its own horizontal padding instead. */
+   952→.composer-design-system-row {
+   953→  display: flex;
+   954→  align-items: center;
+   955→  gap: 8px;
+   956→  min-width: 0;
+   957→  padding: 7px 12px;
+   958→  border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+   959→}
+   960→.composer.drag-active .composer-shell {
+   961→  border-color: var(--accent);
+   962→  background: var(--accent-tint);
+   963→}
+   964→.composer-active-file {
+   965→  display: flex;
+   966→  align-items: center;
+   967→  gap: 7px;
+   968→  min-width: 0;
+   969→  width: fit-content;
+   970→  max-width: calc(100% - 24px);
+   971→  margin: 0 12px;
+   972→  padding: 5px 8px;
+   973→  border: 1px solid var(--border-soft);
+   974→  border-radius: var(--radius);
+   975→  background: color-mix(in srgb, var(--accent) 7%, var(--bg-panel));
+   976→  color: var(--text);
+   977→  font-size: 12px;
+   978→  line-height: 1.25;
+   979→}
+   980→.composer-active-file__label {
+   981→  flex: 0 0 auto;
+   982→  color: var(--text-muted);
+   983→  font-weight: 650;
+   984→}
+   985→.composer-active-file__name {
+   986→  min-width: 0;
+   987→  max-width: min(100%, 260px);
+   988→  overflow: hidden;
+   989→  text-overflow: ellipsis;
+   990→  white-space: nowrap;
+   991→  font-weight: 650;
+   992→}
+   993→/* -------- Lexical contenteditable input ---------------------------- */
+   994→.composer-input-wrap {
+   995→  position: relative;
+   996→  display: flex;
+   997→  flex-direction: column;
+   998→  border: 1px solid transparent;
+   999→  border-radius: var(--radius-sm);
+  1000→  background: color-mix(in srgb, var(--bg-panel) 94%, var(--bg-subtle));
+  1001→  transition:
+  1002→    background-color 140ms cubic-bezier(0.23, 1, 0.32, 1),
+  1003→    border-color 140ms cubic-bezier(0.23, 1, 0.32, 1);
+  1004→}
+  1005→.composer-input-wrap:focus-within {
+  1006→  background: var(--bg-panel);
+  1007→  border-color: color-mix(in srgb, var(--selected) 28%, var(--border));
+  1008→}
+  1009→/* The wrapper that owns scroll + max-height (Lexical's ContentEditable is
+  1010→   the inner [contenteditable] element). */
+  1011→.composer-input-editor {
+  1012→  position: relative;
+  1013→  min-height: 72px;
+  1014→  max-height: min(184px, 34vh);
+  1015→  overflow-y: auto;
+  1016→}
+  1017→.composer.composer-active-file-mode .composer-input-editor {
+  1018→  min-height: clamp(150px, 20vh, 210px);
+  1019→  max-height: min(300px, 32vh);
+  1020→}
+  1021→.composer-input-editor [contenteditable='true'],
+  1022→.composer-input-editor .composer-editable {
+  1023→  outline: none;
+  1024→  min-height: 72px;
+  1025→  padding: 8px 9px;
+  1026→  font: inherit;
+  1027→  font-size: 13.5px;
+  1028→  line-height: 1.6;
+  1029→  color: var(--text);
+  1030→  white-space: pre-wrap;
+  1031→  overflow-wrap: anywhere;
+  1032→  word-break: break-word;
+  1033→  caret-color: var(--accent);
+  1034→  -webkit-user-modify: read-write-plaintext-only; /* paste-as-plain-text guard */
+  1035→}
+  1036→.composer.composer-active-file-mode .composer-input-editor [contenteditable='true'],
+  1037→.composer.composer-active-file-mode .composer-input-editor .composer-editable {
+  1038→  min-height: clamp(150px, 20vh, 210px);
+  1039→}
+  1040→/* Lexical placeholder — absolutely positioned over the empty editor. The
+  1041→   editor adds/removes its sibling automatically; we style by class. */
+  1042→.composer-input-placeholder {
+  1043→  position: absolute;
+  1044→  top: 8px;
+  1045→  left: 9px;
+  1046→  pointer-events: none;
+  1047→  user-select: none;
+  1048→  color: var(--text-faint);
+  1049→  font-size: 13.5px;
+  1050→  line-height: 1.6;
+  1051→  overflow: hidden;
+  1052→  text-overflow: ellipsis;
+  1053→  white-space: nowrap;
+  1054→  max-width: calc(100% - 8px);
+  1055→}
+  1056→/* Single-paragraph + LineBreakNode model: collapse paragraph margins so a
+  1057→   serialized "\n" reads as a single visual line break (no \n\n gap). */
+  1058→.composer-input-editor p,
+  1059→.composer-editor-paragraph {
+  1060→  margin: 0;
+  1061→  line-height: inherit;
+  1062→}
+  1063→
+  1064→/* -------- Mention pill — real Lexical atomic node ------------------- */
+  1065→/* Each @mention is a <span class="composer-inline-mention
+  1066→   composer-inline-mention--{kind}"> rendered INSIDE the contenteditable
+  1067→   line box, so it carries the native caret. Per-kind hue is driven by a
+  1068→   single local custom prop pair so dot + bg + ring stay in sync. */
+  1069→.composer-inline-mention {
+  1070→  --m-hue: var(--accent);
+  1071→  --m-tint: var(--accent-tint);
+  1072→  box-sizing: border-box;
+  1073→  display: inline-flex;
+  1074→  align-items: center;
+  1075→  gap: 4px;
+  1076→  /* Dify recipe: fixed-px box + vertical-align:middle, NOT an em-relative
+  1077→     height with a magic baseline nudge. A 19px box centers cleanly in the
+  1078→     editor's 21.6px line (13.5px × 1.6) and stays put under zoom / font
+  1079→     scaling because none of these metrics are derived from the pill's own
+  1080→     reduced font-size. */
+  1081→  height: 19px;
+  1082→  max-width: min(240px, 25vw);
+  1083→  margin: 0 0.5px;
+  1084→  padding: 0 7px 0 6px;
+  1085→  border: 1px solid color-mix(in srgb, var(--m-hue) 26%, var(--border));
+  1086→  border-radius: var(--radius-sm);
+  1087→  background: var(--m-tint);
+  1088→  color: color-mix(in srgb, var(--m-hue) 72%, var(--text));
+  1089→  font: inherit;
+  1090→  font-size: 12.5px;
+  1091→  font-weight: 500;
+  1092→  line-height: 1;
+  1093→  white-space: nowrap;
+  1094→  overflow: hidden;
+  1095→  text-overflow: ellipsis;
+  1096→  vertical-align: middle;
+  1097→  position: relative;
+  1098→  top: -0.5px; /* residual descender bias so the box optically centers on text */
+  1099→  cursor: default;
+  1100→  /* user-select:none keeps the node atomic — the caret lands beside it,
+  1101→     never inside the "@token" glyphs. */
+  1102→  user-select: none;
+  1103→  -webkit-user-select: none;
+  1104→  transition:
+  1105→    background-color 140ms cubic-bezier(0.23, 1, 0.32, 1),
+  1106→    border-color 140ms cubic-bezier(0.23, 1, 0.32, 1),
+  1107→    box-shadow 140ms cubic-bezier(0.23, 1, 0.32, 1);
+  1108→}
+  1109→/* Leading type dot. Lexical TextNode tokens can't host child elements, so
+  1110→   render the dot via ::before — it costs nothing and reads as an icon. */
+  1111→.composer-inline-mention::before {
+  1112→  content: '';
+  1113→  flex: 0 0 auto;
+  1114→  width: 4px;
+  1115→  height: 4px;
+  1116→  border-radius: 50%;
+  1117→  background: var(--m-hue);
+  1118→  box-shadow: 0 0 0 2px color-mix(in srgb, var(--m-hue) 18%, transparent);
+  1119→}
+  1120→.composer-inline-mention:hover {
+  1121→  border-color: color-mix(in srgb, var(--m-hue) 40%, var(--border));
+  1122→  background: color-mix(in srgb, var(--m-hue) 14%, var(--bg-panel));
+  1123→}
+  1124→/* Lexical applies a 'selected' class when the token is range-selected
+  1125→   (click / shift-arrow). Use the blue --selected token for the focus ring
+  1126→   so it reads distinctly from the warm accent hue. */
+  1127→.composer-inline-mention.selected {
+  1128→  border-color: var(--selected);
+  1129→  box-shadow: 0 0 0 2px var(--selected-soft);
+  1130→  background: color-mix(in srgb, var(--m-hue) 16%, var(--bg-panel));
+  1131→}
+  1132→/* Per-kind hue map — set only the two local props; everything above
+  1133→   derives from them. */
+  1134→.composer-inline-mention--plugin    { --m-hue: var(--accent);  --m-tint: var(--accent-tint); }
+  1135→.composer-inline-mention--skill     { --m-hue: var(--accent);  --m-tint: var(--accent-tint); }
+  1136→.composer-inline-mention--design,
+  1137→.composer-inline-mention--mcp        { --m-hue: var(--purple);  --m-tint: var(--purple-bg); }
+  1138→.composer-inline-mention--file       { --m-hue: var(--blue);    --m-tint: var(--blue-bg); }
+  1139→.composer-inline-mention--connector  { --m-hue: var(--green);   --m-tint: var(--green-bg); }
+  1140→.composer-inline-mention--asset      { --m-hue: var(--text-soft); --m-tint: var(--bg-subtle); }
+  1141→/* Working-directory picker row, directly below the input and above the
+  1142→   controls — mirrors the Home composer's placement. */
+  1143→.composer-workdir-row {
+  1144→  display: flex;
+  1145→  justify-content: flex-start;
+  1146→  /* Hug the composer card so the picker sits ~5px below it (to the icon),
+  1147→     matching the Home placement. */
+  1148→  margin-top: -4px;
+  1149→}
+  1150→.composer-row {
+  1151→  display: flex;
+  1152→  align-items: center;
+  1153→  gap: 6px;
+  1154→  /* Center the divider between the input above (8px composer gap) and the
+  1155→     controls below (8px padding) so the toolbar isn't cramped against the
+  1156→     border. */
+  1157→  margin-top: 0;
+  1158→  padding-top: 8px;
+  1159→  border-top: 1px solid var(--border-soft);
+  1160→  /* Anchors the standalone design-toolbox popover (opened from the assistant
+  1161→     next-step card) above this toolbar row. */
+  1162→  position: relative;
+  1163→}
+  1164→
+  1165→/* Standalone design-toolbox popover. The toolbox left the "+" menu; it now
+  1166→   opens here, floating above the composer toolbar, triggered from the
+  1167→   assistant "next step" card's "More" affordance. `display: contents` keeps
+  1168→   the wrapper out of the flex flow so the backdrop + popup anchor cleanly. */
+  1169→.composer-toolbox-standalone {
+  1170→  display: contents;
+  1171→}
+  1172→.composer-toolbox-standalone-backdrop {
+  1173→  position: fixed;
+  1174→  inset: 0;
+  1175→  z-index: 89;
+  1176→  background: transparent;
+  1177→  border: 0;
+  1178→  padding: 0;
+  1179→  margin: 0;
+  1180→  cursor: default;
+  1181→}
+  1182→.composer-row .composer-toolbox-standalone-popup {
+  1183→  position: absolute;
+  1184→  left: 8px;
+  1185→  right: auto;
+  1186→  top: auto;
+  1187→  bottom: calc(100% + 8px);
+  1188→  z-index: 90;
+  1189→  max-height: min(60vh, 440px);
+  1190→  overflow-y: auto;
+  1191→  scrollbar-width: thin;
+  1192→  animation: composer-toolbox-pop-in 160ms cubic-bezier(0.23, 1, 0.32, 1);
+  1193→}
+  1194→@keyframes composer-toolbox-pop-in {
+  1195→  from {
+  1196→    opacity: 0;
+  1197→    transform: translateY(6px) scale(0.98);
+  1198→  }
+  1199→  to {
+  1200→    opacity: 1;
+  1201→    transform: translateY(0) scale(1);
+  1202→  }
+  1203→}
+  1204→.composer-row .icon-btn {
+  1205→  box-sizing: border-box;
+  1206→  width: 32px;
+  1207→  height: 32px;
+  1208→  min-width: 32px;
+  1209→  min-height: 32px;
+  1210→  padding: 0;
+  1211→  background: transparent;
+  1212→  border: 1px solid transparent;
+  1213→  border-radius: var(--radius-sm);
+  1214→  color: var(--text-muted);
+  1215→  display: inline-flex;
+  1216→  align-items: center;
+  1217→  justify-content: center;
+  1218→  font-size: 14px;
+  1219→  transition:
+  1220→    background-color 140ms cubic-bezier(0.23, 1, 0.32, 1),
+  1221→    color 140ms cubic-bezier(0.23, 1, 0.32, 1),
+  1222→    border-color 140ms cubic-bezier(0.23, 1, 0.32, 1);
+  1223→}
+  1224→.composer-row .icon-btn:hover:not(:disabled) {
+  1225→  background: var(--bg-subtle);
+  1226→  color: var(--text);
+  1227→  border-color: var(--border);
+  1228→}
+  1229→.composer-row .icon-btn:active:not(:disabled) { background: var(--bg-muted); }
+  1230→.composer-row .icon-btn:disabled { opacity: 0.45; cursor: default; }
+  1231→.composer-spacer { flex: 1; }
+  1232→
+  1233→/* --- Composer footer: one control system ----------------------------------
+  1234→   The toolbar mixes five controls authored in five different components —
+  1235→   the + icon (.icon-btn), the working-dir pill (.working-dir-pill-trigger),
+  1236→   the agent avatar (.avatar-agent-trigger), the "Design" session-mode toggle
+  1237→   (.session-mode-toggle__trigger) and Send (.composer-send) — which had
+  1238→   drifted to three heights (28/32px) and three corner radii (full-pill / 8 /
+  1239→   6). Normalize the interactive controls to one 32px, radius-sm pill so the
+  1240→   row reads as a single system. Send keeps its accent fill and + stays a
+  1241→   ghost icon; only geometry/elevation is unified, not color. `.app` raises
+  1242→   specificity above the per-component base rules in routines/shell.css. */
+  1243→.app .composer-row .working-dir-pill-trigger,
+  1244→.app .composer-row .avatar-agent-trigger,
+  1245→.app .composer-row .session-mode-toggle__trigger,
+  1246→.app .composer-row .composer-send,
+  1247→.app .composer-row .icon-btn {
+  1248→  height: 28px;
+  1249→  border-radius: var(--radius-sm);
+  1250→  box-sizing: border-box;
+  1251→}
+  1252→.app .composer-row .working-dir-pill-trigger {
+  1253→  padding-top: 0;
+  1254→  padding-bottom: 0;
+  1255→}
+  1256→.app .composer-row .session-mode-toggle__trigger {
+  1257→  box-shadow: none;
+  1258→}
+  1259→/* The agent avatar is a 32px round image; shrink it (and the trigger grid)
+  1260→   so it fits the 28px control height without being clipped. */
+  1261→.app .composer-row .avatar-agent-trigger {
+  1262→  width: 48px;
+  1263→  grid-template-columns: 26px 20px;
+  1264→}
+  1265→.app .composer-row .avatar-btn {
+  1266→  width: 22px;
+  1267→  height: 22px;
+  1268→}
+  1269→.app .composer-row .icon-btn {
+  1270→  width: 28px;
+  1271→  min-width: 28px;
+  1272→  min-height: 28px;
+  1273→}
+  1274→.session-mode-toggle {
+  1275→  position: relative;
+  1276→  display: inline-flex;
+  1277→  align-items: center;
+  1278→  height: 32px;
+  1279→  min-width: 0;
+  1280→  flex-shrink: 0;
+  1281→}
+  1282→.session-mode-toggle__trigger,
+  1283→.session-mode-toggle__option {
+  1284→  appearance: none;
+  1285→  display: inline-flex;
+  1286→  align-items: center;
+  1287→  gap: 5px;
+  1288→  min-width: 0;
+  1289→  border: 1px solid var(--border);
+  1290→  background: var(--bg-panel);
+  1291→  color: var(--text-muted);
+  1292→  cursor: pointer;
+  1293→  font: inherit;
+  1294→  font-size: 12px;
+  1295→  font-weight: 650;
+  1296→  line-height: 1;
+  1297→  white-space: nowrap;
+  1298→  transition:
+  1299→    background 160ms cubic-bezier(0.23, 1, 0.32, 1),
+  1300→    border-color 160ms cubic-bezier(0.23, 1, 0.32, 1),
+  1301→    color 160ms cubic-bezier(0.23, 1, 0.32, 1),
+  1302→    box-shadow 160ms cubic-bezier(0.23, 1, 0.32, 1);
+  1303→}
+  1304→.session-mode-toggle__trigger {
+  1305→  height: 32px;
+  1306→  max-width: 132px;
+  1307→  padding: 0 8px;
+  1308→  border-radius: var(--radius);
+  1309→  box-shadow: var(--shadow-xs);
+  1310→}
+  1311→.session-mode-toggle__trigger:hover:not(:disabled),
+  1312→.session-mode-toggle__trigger.is-open {
+  1313→  background: var(--bg-subtle);
+  1314→  border-color: var(--border-strong);
+  1315→  color: var(--text-strong);
+  1316→}
+  1317→.session-mode-toggle__trigger:disabled {
+  1318→  cursor: default;
+  1319→  opacity: 0.65;
+  1320→}
+  1321→.session-mode-toggle__popover {
+  1322→  position: absolute;
+  1323→  bottom: calc(100% + 6px);
+  1324→  left: 0;
+  1325→  z-index: 1502;
+  1326→  display: flex;
+  1327→  width: max-content;
+  1328→  max-width: calc(100vw - 32px);
+  1329→  align-items: flex-end;
+  1330→  gap: 8px;
+  1331→}
+  1332→.session-mode-toggle__menu {
+  1333→  width: max-content;
+  1334→  min-width: 168px;
+  1335→  padding: 4px;
+  1336→  border: 1px solid var(--border);
+  1337→  border-radius: var(--radius);
+  1338→  background: var(--bg-panel);
+  1339→  box-shadow: var(--shadow-md);
+  1340→}
+  1341→.session-mode-toggle__options {
+  1342→  display: grid;
+  1343→  gap: 2px;
+  1344→}
+  1345→.session-mode-toggle__option {
+  1346→  width: 100%;
+  1347→  height: 30px;
+  1348→  justify-content: flex-start;
+  1349→  text-align: left;
+  1350→  padding: 0 8px;
+  1351→  border-color: transparent;
+  1352→  border-radius: var(--radius-sm);
+  1353→  background: transparent;
+  1354→}
+  1355→.session-mode-toggle__option:hover:not(:disabled) {
+  1356→  background: var(--bg-subtle);
+  1357→  color: var(--text);
+  1358→}
+  1359→.session-mode-toggle__option.is-active {
+  1360→  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  1361→  color: var(--text-strong);
+  1362→}
+  1363→.session-mode-toggle__label {
+  1364→  min-width: 0;
+  1365→  flex: 1 1 auto;
+  1366→  overflow: hidden;
+  1367→  text-overflow: ellipsis;
+  1368→  text-align: left;
+  1369→}
+  1370→.session-mode-toggle__check {
+  1371→  display: inline-flex;
+  1372→  width: 13px;
+  1373→  flex: 0 0 13px;
+  1374→  align-items: center;
+  1375→  justify-content: center;
+  1376→}
+  1377→.session-mode-card {
+  1378→  padding: 10px;
+  1379→  border: 1px solid var(--border);
+  1380→  border-radius: var(--radius);
+  1381→  background: var(--bg-panel);
+  1382→  color: var(--text);
+  1383→  box-shadow: var(--shadow-md);
+  1384→}
+  1385→.session-mode-toggle__popover-card {
+  1386→  width: 320px;
+  1387→  flex: 0 0 320px;
+  1388→  background: var(--bg-panel);
+  1389→  max-height: min(360px, calc(100vh - 84px));
+  1390→  overflow-y: auto;
+  1391→  overscroll-behavior: contain;
+  1392→}
+  1393→.composer .session-mode-toggle__popover-card {
+  1394→  display: none;
+  1395→}
+  1396→.session-mode-card__head {
+  1397→  display: flex;
+  1398→  align-items: flex-start;
+  1399→  gap: 8px;
+  1400→}
+  1401→.session-mode-card__icon {
+  1402→  display: inline-flex;
+  1403→  width: 24px;
+  1404→  height: 24px;
+  1405→  flex: 0 0 24px;
+  1406→  align-items: center;
+  1407→  justify-content: center;
+  1408→  border-radius: var(--radius-sm);
+  1409→  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  1410→  color: var(--text-strong);
+  1411→}
+  1412→.session-mode-card__heading {
+  1413→  min-width: 0;
+  1414→}
+  1415→.session-mode-card__title {
+  1416→  color: var(--text-strong);
+  1417→  font-size: 13px;
+  1418→  font-weight: 750;
+  1419→  line-height: 1.25;
+  1420→}
+  1421→.session-mode-card__label {
+  1422→  margin-top: 1px;
+  1423→  color: var(--text-muted);
+  1424→  font-size: 11px;
+  1425→  font-weight: 650;
+  1426→  line-height: 1.3;
+  1427→}
+  1428→.session-mode-card__summary,
+  1429→.session-mode-card__section-text {
+  1430→  margin: 7px 0 0;
+  1431→  color: var(--text-muted);
+  1432→  font-size: 12px;
+  1433→  line-height: 1.45;
+  1434→}
+  1435→.session-mode-card__section {
+  1436→  margin-top: 9px;
+  1437→}
+  1438→.session-mode-card__section-label {
+  1439→  color: var(--text-strong);
+  1440→  font-size: 11px;
+  1441→  font-weight: 750;
+  1442→  letter-spacing: 0;
+  1443→  line-height: 1.25;
+  1444→}
+  1445→.session-mode-card__queries {
+  1446→  display: grid;
+  1447→  gap: 4px;
+  1448→  margin: 6px 0 0;
+  1449→  padding: 0;
+  1450→  list-style: none;
+  1451→}
+  1452→.session-mode-card__query {
+  1453→  padding: 6px 7px;
+  1454→  border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+  1455→  border-radius: var(--radius-sm);
+  1456→  background: var(--bg-panel);
+  1457→  color: var(--text);
+  1458→  font-size: 11.5px;
+  1459→  font-weight: 600;
+  1460→  line-height: 1.35;
+  1461→}
+  1462→@media (max-width: 700px) {
+  1463→  .session-mode-toggle__trigger {
+  1464→    max-width: 138px;
+  1465→  }
+  1466→  .session-mode-toggle__popover {
+  1467→    display: grid;
+  1468→    width: min(292px, calc(100vw - 24px));
+  1469→  }
+  1470→  .session-mode-toggle__menu,
+  1471→  .session-mode-toggle__popover-card {
+  1472→    width: 100%;
+  1473→    min-width: 0;
+  1474→  }
+  1475→}
+  1476→.composer-import {
+  1477→  background: transparent;
+  1478→  border: none;
+  1479→  border-radius: var(--radius-sm);
+  1480→  padding: 4px 12px;
+  1481→  font-size: 12px;
+  1482→  color: var(--text-muted);
+  1483→}
+  1484→.composer-import:hover:not(:disabled) { background: var(--bg-fill-tertiary); color: var(--text); }
+  1485→.composer-research {
+  1486→  display: inline-flex;
+  1487→  align-items: center;
+  1488→  gap: 6px;
+  1489→  background: transparent;
+  1490→  border: none;
+  1491→  border-radius: var(--radius-sm);
+  1492→  padding: 4px 10px;
+  1493→  font-size: 12px;
+  1494→  color: var(--text-muted);
+  1495→  cursor: pointer;
+  1496→}
+  1497→.composer-research:hover:not(:disabled) { background: var(--bg-fill-tertiary); color: var(--text); }
+  1498→.composer-research.on {
+  1499→  background: color-mix(in oklab, var(--accent) 12%, transparent);
+  1500→  color: var(--accent);
+  1501→}
+  1502→.composer-research-dot {
+  1503→  width: 6px;
+  1504→  height: 6px;
+  1505→  border-radius: 50%;
+  1506→  background: var(--accent);
+  1507→}
+  1508→.composer-send {
+  1509→  display: inline-flex;
+  1510→  align-items: center;
+  1511→  justify-content: center;
+  1512→  gap: 5px;
+  1513→  flex-shrink: 0;
+  1514→  white-space: nowrap;
+  1515→  min-width: 0;
+  1516→  height: 32px;
+  1517→  background: var(--accent);
+  1518→  border: 1px solid var(--accent);
+  1519→  color: white;
+  1520→  font-weight: 650;
+  1521→  padding: 0 11px;
+  1522→  font-size: 12.5px;
+  1523→  border-radius: var(--radius-sm);
+  1524→  box-shadow: var(--shadow-xs);
+  1525→  transition:
+  1526→    background-color 140ms cubic-bezier(0.23, 1, 0.32, 1),
+  1527→    border-color 140ms cubic-bezier(0.23, 1, 0.32, 1),
+  1528→    box-shadow 140ms cubic-bezier(0.23, 1, 0.32, 1),
+  1529→    transform 140ms cubic-bezier(0.23, 1, 0.32, 1),
+  1530→    opacity 140ms cubic-bezier(0.23, 1, 0.32, 1);
+  1531→}
+  1532→.composer-send:hover:not(:disabled) {
+  1533→  background: var(--accent-hover);
+  1534→  border-color: var(--accent-hover);
+  1535→  box-shadow: var(--shadow-sm);
+  1536→}
+  1537→.composer-send:active:not(:disabled) { transform: translateY(1px); box-shadow: var(--shadow-xs); }
+  1538→.composer-send:focus-visible {
+  1539→  outline: none;
+  1540→  box-shadow: 0 0 0 3px var(--selected-soft);
+  1541→}
+  1542→.composer-send:disabled { opacity: 0.5; cursor: default; box-shadow: none; }
+  1543→.composer-send.stop { background: var(--text); border-color: var(--text); color: var(--bg-panel); }
+  1544→.composer-send.stop:hover { background: var(--text-strong); border-color: var(--text-strong); color: var(--bg-panel); }
+  1545→.composer-hint {
+  1546→  font-size: 11px;
+  1547→  color: var(--text-faint);
+  1548→  margin: 0 8px;
+  1549→}
+  1550→
+  1551→.chat-queued-send-strip {
+  1552→  display: flex;
+  1553→  flex-direction: column;
+  1554→  align-self: auto;
+  1555→  width: calc(100% - (var(--chat-composer-inline-inset, 12px) * 2));
+  1556→  min-width: 0;
+  1557→  max-width: none;
+  1558→  gap: 3px;
+  1559→  box-sizing: border-box;
+  1560→  margin: 0 var(--chat-composer-inline-inset, 12px) 2px;
+  1561→  padding: 7px;
+  1562→  overflow: visible;
+  1563→  border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+  1564→  border-radius: var(--radius);
+  1565→  background: color-mix(in srgb, var(--bg-panel) 92%, var(--bg-subtle));
+  1566→  box-shadow:
+  1567→    0 10px 24px -18px rgba(0, 0, 0, 0.32),
+  1568→    0 1px 2px rgba(0, 0, 0, 0.05);
+  1569→}
+  1570→
+  1571→.chat-queued-send-list {
+  1572→  display: flex;
+  1573→  flex-direction: column;
+  1574→  gap: 3px;
+  1575→  min-width: 0;
+  1576→  max-height: min(31vh, 168px);
+  1577→  overflow-y: auto;
+  1578→  overflow-x: hidden;
+  1579→  padding-right: 1px;
+  1580→  scrollbar-width: thin;
+  1581→}
+  1582→
+  1583→.chat-queued-send-list.is-scrollable {
+  1584→  padding-right: 3px;
+  1585→  overscroll-behavior: contain;
+  1586→  mask-image: linear-gradient(to bottom, #000 calc(100% - 18px), transparent);
+  1587→}
+  1588→
+  1589→.chat-queued-send-header {
+  1590→  display: flex;
+  1591→  align-items: center;
+  1592→  justify-content: space-between;
+  1593→  min-height: 18px;
+  1594→  padding: 0 4px 1px;
+  1595→}
+  1596→
+  1597→.chat-queued-send-heading {
+  1598→  display: inline-flex;
+  1599→  align-items: center;
+  1600→  gap: 4px;
+  1601→  min-width: 0;
+  1602→  color: var(--text-muted);
+  1603→  font-size: 11px;
+  1604→  line-height: 1.2;
+  1605→  white-space: nowrap;
+  1606→}
+  1607→
+  1608→.chat-queued-send-heading strong {
+  1609→  color: var(--text-strong);
+  1610→  font-weight: 620;
+  1611→}
+  1612→
+  1613→.chat-queued-send-row {
+  1614→  position: relative;
+  1615→  display: grid;
+  1616→  grid-template-columns: 24px minmax(0, 1fr) max-content;
+  1617→  align-items: center;
+  1618→  gap: 5px;
+  1619→  min-width: 0;
+  1620→  min-height: 36px;
+  1621→  box-sizing: border-box;
+  1622→  padding: 2px 4px;
+  1623→  overflow: hidden;
+  1624→  border: 1px solid transparent;
+  1625→  border-radius: var(--radius);
+  1626→  background: transparent;
+  1627→  transition:
+  1628→    background-color 140ms cubic-bezier(0.23, 1, 0.32, 1),
+  1629→    border-color 140ms cubic-bezier(0.23, 1, 0.32, 1),
+  1630→    opacity 140ms cubic-bezier(0.23, 1, 0.32, 1);
+  1631→}
+  1632→
+  1633→.chat-queued-send-row-active {
+  1634→  border-color: color-mix(in srgb, var(--border) 80%, transparent);
+  1635→  background: color-mix(in srgb, var(--bg-subtle) 82%, transparent);
+  1636→}
+  1637→
+  1638→.chat-queued-send-row:hover {
+  1639→  background: color-mix(in srgb, var(--bg-subtle) 70%, transparent);
+  1640→}
+  1641→
+  1642→.chat-queued-send-row-dragging {
+  1643→  opacity: 0.45;
+  1644→}
+  1645→
+  1646→.chat-queued-send-row-drop-before::before,
+  1647→.chat-queued-send-row-drop-after::after {
+  1648→  content: '';
+  1649→  position: absolute;
+  1650→  left: 28px;
+  1651→  right: 8px;
+  1652→  height: 2px;
+  1653→  border-radius: var(--radius-pill);
+  1654→  background: var(--selected);
+  1655→  box-shadow: 0 0 0 2px var(--selected-soft);
+  1656→}
+  1657→
+  1658→.chat-queued-send-row-drop-before::before {
+  1659→  top: -2px;
+  1660→}
+  1661→
+  1662→.chat-queued-send-row-drop-after::after {
+  1663→  bottom: -2px;
+  1664→}
+  1665→
+  1666→.chat-queued-send-main {
+  1667→  min-width: 0;
+  1668→  overflow: hidden;
+  1669→  flex: 1;
+  1670→  display: flex;
+  1671→  flex-direction: column;
+  1672→  gap: 2px;
+  1673→}
+  1674→
+  1675→.chat-queued-send-title {
+  1676→  min-width: 0;
+  1677→  overflow: hidden;
+  1678→  color: var(--text);
+  1679→  font-size: 11px;
+  1680→  line-height: 1.2;
+  1681→  text-overflow: ellipsis;
+  1682→  white-space: nowrap;
+  1683→}
+  1684→
+  1685→.chat-queued-send-chips {
+  1686→  display: flex;
+  1687→  flex-wrap: nowrap;
+  1688→  align-items: center;
+  1689→  gap: 3px;
+  1690→  min-width: 0;
+  1691→  overflow: hidden;
+  1692→}
+  1693→
+  1694→.chat-queued-send-chip {
+  1695→  display: inline-flex;
+  1696→  align-items: center;
+  1697→  gap: 3px;
+  1698→  height: 18px;
+  1699→  min-width: 0;
+  1700→  max-width: 124px;
+  1701→  padding: 0 5px;
+  1702→  border-radius: var(--radius-sm);
+  1703→  border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
+  1704→  background: color-mix(in srgb, var(--bg) 78%, transparent);
+  1705→  color: var(--text-muted);
+  1706→  font-size: 9px;
+  1707→  line-height: 1;
+  1708→  overflow: hidden;
+  1709→  text-overflow: ellipsis;
+  1710→  white-space: nowrap;
+  1711→}
+  1712→
+  1713→.chat-queued-send-actions {
+  1714→  display: inline-flex;
+  1715→  align-items: center;
+  1716→  gap: 1px;
+  1717→  flex: 0 0 auto;
+  1718→  min-width: 0;
+  1719→}
+  1720→
+  1721→.chat-queued-send-drag-handle,
+  1722→.chat-queued-send-action {
+  1723→  width: 24px;
+  1724→  height: 24px;
+  1725→  display: inline-flex;
+  1726→  align-items: center;
+  1727→  justify-content: center;
+  1728→  padding: 0;
+  1729→  border: 1px solid transparent;
+  1730→  border-radius: var(--radius-sm);
+  1731→  background: transparent;
+  1732→  color: var(--text-muted);
+  1733→}
+  1734→
+  1735→.chat-queued-send-drag-handle {
+  1736→  flex: 0 0 auto;
+  1737→  color: var(--text-faint);
+  1738→  cursor: grab;
+  1739→}
+  1740→
+  1741→.chat-queued-send-drag-handle:active:not(:disabled) {
+  1742→  cursor: grabbing;
+  1743→}
+  1744→
+  1745→.chat-queued-send-drag-handle:disabled {
+  1746→  cursor: default;
+  1747→  opacity: 0.35;
+  1748→}
+  1749→
+  1750→.chat-queued-send-drag-handle:hover:not(:disabled),
+  1751→.chat-queued-send-action:hover:not(:disabled) {
+  1752→  border-color: color-mix(in srgb, var(--border) 84%, transparent);
+  1753→  background: var(--bg-panel);
+  1754→  color: var(--text);
+  1755→}
+  1756→
+  1757→.chat-queued-send-drag-handle:focus-visible,
+  1758→.chat-queued-send-action:focus-visible {
+  1759→  outline: 2px solid var(--accent);
+  1760→  outline-offset: 2px;
+  1761→}
+  1762→
+  1763→.chat-queued-send-action:disabled {
+  1764→  cursor: not-allowed;
+  1765→  opacity: 0.45;
+  1766→}
+  1767→
+  1768→.chat-queued-send-overflow {
+  1769→  padding: 1px 4px 0 33px;
+  1770→  color: var(--text-faint);
+  1771→  font-size: 10px;
+  1772→  line-height: 1.2;
+  1773→  white-space: nowrap;
+  1774→}
+  1775→
+  1776→.chat-queued-send-tooltip {
+  1777→  position: relative;
+  1778→}
+  1779→
+  1780→.chat-queued-send-tooltip:not(.od-tooltip)[data-tooltip]::after {
+  1781→  content: attr(data-tooltip);
+  1782→  position: absolute;
+  1783→  top: 50%;
+  1784→  right: calc(100% + 6px);
+  1785→  z-index: 20;
+  1786→  max-width: 180px;
+  1787→  padding: 5px 7px;
+  1788→  border-radius: var(--radius-sm);
+  1789→  background: color-mix(in srgb, var(--text-strong) 92%, #000);
+  1790→  color: var(--bg-panel);
+  1791→  font-size: 11px;
+  1792→  line-height: 1.2;
+  1793→  white-space: nowrap;
+  1794→  opacity: 0;
+  1795→  pointer-events: none;
+  1796→  transform: translate(-2px, -50%);
+  1797→  transition:
+  1798→    opacity 120ms cubic-bezier(0.23, 1, 0.32, 1),
+  1799→    transform 120ms cubic-bezier(0.23, 1, 0.32, 1);
+  1800→}
+  1801→
+  1802→.chat-queued-send-drag-handle:not(.od-tooltip)[data-tooltip]::after {
+  1803→  right: auto;
+  1804→  left: calc(100% + 6px);
+  1805→  transform: translate(2px, -50%);
+  1806→}
+  1807→
+  1808→.chat-queued-send-tooltip:not(.od-tooltip)[data-tooltip]:hover::after,
+  1809→.chat-queued-send-tooltip:not(.od-tooltip)[data-tooltip]:focus-visible::after {
+  1810→  opacity: 1;
+  1811→  transform: translate(0, -50%);
+  1812→}
+  1813→
+  1814→.preview-draw-note-input::placeholder {
+  1815→  color: rgba(255, 225, 210, 0.86);
+  1816→}
+  1817→
+  1818→.preview-draw-note-input:focus {
+  1819→  background: rgba(218, 97, 56, 0.26) !important;
+  1820→  border-color: rgba(255, 184, 140, 0.95) !important;
+  1821→  box-shadow: 0 0 0 3px rgba(218, 97, 56, 0.34), 0 0 18px rgba(218, 97, 56, 0.24) !important;
+  1822→}
+  1823→
+  1824→/* -------- Staged attachments -------------------------------------- */
+  1825→.staged-row {
+  1826→  display: flex;
+  1827→  flex-wrap: wrap;
+  1828→  align-items: center;
+  1829→  gap: 5px;
+  1830→  padding: 4px 4px 1px;
+  1831→  max-height: min(108px, 18vh);
+  1832→  overflow-y: auto;
+  1833→  overflow-x: hidden;
+  1834→}
+  1835→.staged-chip {
+  1836→  display: inline-flex;
+  1837→  align-items: center;
+  1838→  gap: 4px;
+  1839→  box-sizing: border-box;
+  1840→  height: 22px;
+  1841→  min-width: 0;
+  1842→  min-height: 22px;
+  1843→  padding: 2px 5px 2px 3px;
+  1844→  background: color-mix(in srgb, var(--bg-panel) 96%, var(--bg-subtle));
+  1845→  border: 1px solid var(--border-soft);
+  1846→  border-radius: var(--radius-sm);
+  1847→  max-width: min(190px, 100%);
+  1848→  overflow: hidden;
+  1849→  white-space: nowrap;
+  1850→  font-size: 10.5px;
+  1851→  line-height: 14px;
+  1852→  box-shadow: none;
+  1853→  transition:
+  1854→    background-color 140ms cubic-bezier(0.23, 1, 0.32, 1),
+  1855→    border-color 140ms cubic-bezier(0.23, 1, 0.32, 1);
+  1856→}
+  1857→.staged-chip:hover {
+  1858→  background: var(--bg-panel);
+  1859→  border-color: var(--border-strong);
+  1860→}
+  1861→.staged-order {
+  1862→  display: inline-flex;
+  1863→  align-items: center;
+  1864→  justify-content: center;
+  1865→  width: 14px;
+  1866→  height: 14px;
+  1867→  flex: 0 0 14px;
+  1868→  border-radius: var(--radius-xs);
+  1869→  background: color-mix(in srgb, var(--text) 7%, var(--bg-subtle));
+  1870→  color: var(--text-muted);
+  1871→  font-size: 8px;
+  1872→  font-weight: 650;
+  1873→  line-height: 1;
+  1874→}
+  1875→.staged-context-row {
+  1876→  padding-top: 2px;
+  1877→}
+  1878→.staged-context-picker {
+  1879→  display: inline-flex;
+  1880→  align-items: center;
+  1881→  min-width: 0;
+  1882→  height: 22px;
+  1883→}
+  1884→.staged-context-picker--design-system .project-ds-picker-trigger {
+  1885→  height: 22px;
+  1886→  min-height: 22px;
+  1887→  max-width: 232px;
+  1888→  padding: 0 7px;
+  1889→  gap: 5px;
+  1890→  border-radius: var(--radius);
+  1891→  font-size: 11px;
+  1892→  box-shadow: none;
+  1893→}
+  1894→.staged-context {
+  1895→  gap: 4px;
+  1896→  height: 22px;
+  1897→  min-height: 22px;
+  1898→  max-width: min(190px, 100%);
+  1899→  padding: 2px 5px 2px 3px;
+  1900→  border-radius: var(--radius-sm);
+  1901→  font-size: 10.5px;
+  1902→  background: color-mix(in srgb, var(--accent-tint) 30%, var(--bg-panel));
+  1903→  border-color: color-mix(in srgb, var(--accent) 18%, var(--border));
+  1904→}
+  1905→.staged-context .staged-icon {
+  1906→  width: 14px;
+  1907→  height: 14px;
+  1908→  flex-basis: 14px;
+  1909→  border-radius: var(--radius-xs);
+  1910→  background: color-mix(in srgb, var(--accent) 9%, var(--bg-subtle));
+  1911→  color: var(--accent);
+  1912→}
+  1913→.staged-context .staged-icon svg {
+  1914→  width: 8px;
+  1915→  height: 8px;
+  1916→}
+  1917→.staged-context .staged-name {
+  1918→  max-width: 106px;
+  1919→  line-height: 14px;
+  1920→}
+  1921→.staged-context .staged-remove {
+  1922→  width: 16px;
+  1923→  height: 16px;
+  1924→  flex-basis: 16px;
+  1925→  border-radius: var(--radius-xs);
+  1926→}
+  1927→.staged-context .staged-remove svg {
+  1928→  width: 8px;
+  1929→  height: 8px;
+  1930→}
+  1931→.staged-context--mcp {
+  1932→  background: color-mix(in srgb, var(--purple-bg) 34%, var(--bg-panel));
+  1933→  border-color: color-mix(in srgb, var(--purple) 18%, var(--border));
+  1934→}
+  1935→.staged-context--mcp .staged-icon {
+  1936→  background: color-mix(in srgb, var(--purple) 10%, var(--bg-subtle));
+  1937→  color: var(--purple);
+  1938→}
+  1939→.staged-context--connector {
+  1940→  background: color-mix(in srgb, var(--green-bg) 34%, var(--bg-panel));
+  1941→  border-color: color-mix(in srgb, var(--green) 18%, var(--border));
+  1942→}
+  1943→.staged-context--connector .staged-icon {
+  1944→  background: color-mix(in srgb, var(--green) 10%, var(--bg-subtle));
+  1945→  color: var(--green);
+  1946→}
+  1947→/* Applied-plugin chip — accent-tinted, sitting inline in the staged-context
+  1948→   row next to the design-system picker. The chip itself is a plain container;
+  1949→   its two controls (open-details + remove) are real sibling buttons. */
+  1950→.staged-context--plugin {
+  1951→  background: color-mix(in srgb, var(--accent) 9%, var(--bg-panel));
+  1952→  border-color: color-mix(in srgb, var(--accent) 22%, var(--border));
+  1953→}
+  1954→.staged-context--plugin .staged-icon {
+  1955→  background: color-mix(in srgb, var(--accent) 12%, var(--bg-subtle));
+  1956→  color: var(--accent);
+  1957→}
+  1958→.staged-context--plugin:hover {
+  1959→  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+  1960→}
+  1961→/* The chip's "open details" trigger: icon + name as a real <button> so it is a
+  1962→   sibling of the remove button, not a role=button wrapper around it (nested
+  1963→   interactive controls break focus order + assistive-tech announcements).
+  1964→   Unstyled so it reads as the chip's content rather than a nested button. */
+  1965→.staged-context-open {
+  1966→  display: inline-flex;
+  1967→  align-items: center;
+  1968→  gap: 4px;
+  1969→  min-width: 0;
+  1970→  margin: 0;
+  1971→  padding: 0;
+  1972→  border: 0;
+  1973→  background: none;
+  1974→  color: inherit;
+  1975→  font: inherit;
+  1976→  line-height: inherit;
+  1977→  cursor: pointer;
+  1978→  overflow: hidden;
+  1979→}
+  1980→.staged-context--workspace {
+  1981→  background: color-mix(in srgb, var(--bg-subtle) 48%, var(--bg-panel));
+  1982→  border-color: color-mix(in srgb, var(--text-muted) 18%, var(--border));
+  1983→}
+  1984→.staged-context--workspace .staged-icon {
+  1985→  background: color-mix(in srgb, var(--text-muted) 10%, var(--bg-subtle));
+  1986→  color: var(--text-muted);
+  1987→}
+  1988→.staged-context-kind {
+  1989→  margin-right: 3px;
+  1990→  color: var(--text-muted);
+  1991→  font-weight: 650;
+  1992→}
+  1993→.staged-chip img {
+  1994→  display: block;
+  1995→  width: 12px;
+  1996→  height: 12px;
+  1997→  border-radius: 3px;
+  1998→  object-fit: cover;
+  1999→}
+  2000→.staged-preview-trigger {
+
+[showing lines 1-2000 of 2234; use offset=2001 with limit to continue reading]
