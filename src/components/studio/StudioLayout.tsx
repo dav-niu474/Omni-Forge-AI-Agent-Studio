@@ -230,9 +230,10 @@ function FloatingCard({
         background: "var(--card-bg)",
         border: "1px solid var(--card-border)",
         boxShadow: isDragging
-          ? "0 24px 80px rgba(0,0,0,0.5), 0 8px 24px rgba(0,0,0,0.3)"
-          : "var(--card-shadow)",
-        backdropFilter: "blur(24px)",
+          ? "0 32px 80px rgba(0,0,0,0.5), 0 12px 32px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.05)"
+          : "var(--card-shadow), 0 0 0 1px var(--glass-border)",
+        backdropFilter: "blur(32px) saturate(1.2)",
+        WebkitBackdropFilter: "blur(32px) saturate(1.2)",
         borderRadius: 20,
         transition: isDragging ? "none" : "box-shadow 0.2s, left 0.3s, top 0.3s, right 0.3s, bottom 0.3s",
       }
@@ -246,9 +247,10 @@ function FloatingCard({
         background: "var(--card-bg)",
         border: "1px solid var(--card-border)",
         boxShadow: isDragging
-          ? "0 24px 80px rgba(0,0,0,0.5), 0 8px 24px rgba(0,0,0,0.3)"
-          : "var(--card-shadow)",
-        backdropFilter: "blur(24px)",
+          ? "0 32px 80px rgba(0,0,0,0.5), 0 12px 32px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.05)"
+          : "var(--card-shadow), 0 0 0 1px var(--glass-border)",
+        backdropFilter: "blur(32px) saturate(1.2)",
+        WebkitBackdropFilter: "blur(32px) saturate(1.2)",
         borderRadius: 20,
         cursor: isDragging ? "grabbing" : "default",
         transition: isDragging ? "none" : "box-shadow 0.2s",
@@ -271,9 +273,11 @@ function FloatingCard({
             data-drag-handle
             onMouseDown={onMouseDown}
             className="flex items-center justify-between px-4 h-11 shrink-0 select-none"
-            style={{ borderBottom: "1px solid var(--glass-border)", cursor: isDragging ? "grabbing" : "grab" }}
+            style={{ borderBottom: "1px solid var(--glass-border)", cursor: isDragging ? "grabbing" : "grab", background: "var(--glass-bg)" }}
           >
             <div className="flex items-center gap-2.5">
+              {/* Drag grip indicator */}
+              <GripVertical className="size-3.5 opacity-30" style={{ color: "var(--text-faint)" }} />
               <div
                 className="size-6 rounded-lg flex items-center justify-center"
                 style={{ background: "var(--accent-tint)" }}
